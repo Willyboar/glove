@@ -1,4 +1,5 @@
 import gleam/int
+import gleam/option.{Option}
 
 // QBE Comparison Operators
 pub type Comp {
@@ -14,10 +15,6 @@ pub type Comp {
   Eq
   // Not equal
   Ne
-}
-
-pub type Option {
-  Option(Value)
 }
 
 // QBE instruction
@@ -41,7 +38,7 @@ pub type Inst {
   // Copies either temporary or literal value
   Copy(Value)
   // Return from a function, optionally with a value
-  Ret(Option)
+  Ret(Option(Value))
   // Jumps to first label if a value is nonzero or to the second one otherwise
   Jnz(Value, String, String)
   // Unconditionally jumps to a label
@@ -104,9 +101,10 @@ pub type Type {
   // Extended Types
   Byte
   Halfword
-  // Agreegate type with a specified name
-  Agreegate(TypeDef)
 }
+
+// Agreegate type with a specified name
+// Agreegate(TypeDef)
 
 // Display Type function
 pub fn display_type(ty: Type) -> String {
@@ -117,8 +115,8 @@ pub fn display_type(ty: Type) -> String {
     Long -> "l"
     Single -> "s"
     Double -> "d"
-    Agreegate(TypeDef) -> display_type_def(TypeDef)
   }
+  //Agreegate(TypeDef) -> display_type_def(TypeDef)
 }
 
 // Returns a C ABI type. Extended types are converted to closest base
@@ -153,7 +151,7 @@ pub fn display_datadef() -> String {
 
 // QBE aggregate type definition
 pub type TypeDef {
-  TypeDef(name: String, align: Option, items: #(Type, Int))
+  TypeDef(name: String, align: Option(Int), items: #(Type, Int))
 }
 
 // Display function for TypeDef
@@ -218,7 +216,7 @@ pub type Function {
     linkage: Linkage,
     name: String,
     arguments: #(Type, Value),
-    return_ty: Option(Type),
+    return_ty: Type,
     blocks: #(Block),
   )
 }
@@ -276,9 +274,9 @@ pub type Module {
 }
 
 // Creates a new module
-pub fn new_module() -> Module {
-  Module(functions: #(), types: #(), data: #())
-}
+//pub fn new_module() -> Module {
+//  Module(functions: #(), types: #(), data: #())
+//}
 
 // Display function for Module
 pub fn display_module(module: Module) -> String {
