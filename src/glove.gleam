@@ -88,9 +88,9 @@ pub type Value {
 // Display Value function
 pub fn display_value(value: Value) -> String {
   case value {
-    Temporary(name) -> "%{" <> name <> "}"
-    Global(name) -> "${" <> name <> "}"
-    Const(value) -> "{" <> int.to_string(value) <> "}"
+    Temporary(name) -> "%" <> name
+    Global(name) -> "$" <> name
+    Const(value) -> int.to_string(value)
   }
 }
 
