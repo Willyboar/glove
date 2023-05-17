@@ -44,7 +44,7 @@ pub type Inst {
   // Unconditionally jumps to a label
   Jmp(String)
   // Calls a function
-  Call(String, #(Type, Value))
+  Call(Value, #(Type, Value))
   // Allocates a 4-byte aligned area on the stack
   Alloc4(Int)
   // Allocates a 8-byte aligned area on the stack
