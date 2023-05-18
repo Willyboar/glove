@@ -1,5 +1,5 @@
 import gleam/int
-import gleam/option.{Option}
+import gleam/option.{None, Option, Some}
 
 // QBE Comparison Operators
 pub type Comp {
@@ -68,8 +68,29 @@ pub type Inst {
 }
 
 // Display function for Instructions
-pub fn display_inst() -> String {
-  todo
+// UNFINISHED
+pub fn display_inst(inst: Inst) -> String {
+  case inst {
+    Add(a, b) -> "add " <> display_value(a) <> ", " <> display_value(b)
+    Sub(a, b) -> "sub" <> display_value(a) <> ", " <> display_value(b)
+    Mul(a, b) -> "mul" <> display_value(a) <> ", " <> display_value(b)
+    Div(a, b) -> "div" <> display_value(a) <> ", " <> display_value(b)
+    Rem(a, b) -> "rem" <> display_value(a) <> ", " <> display_value(b)
+    Comp(ty, cmp, a, b) -> "cmp"
+    And(a, b) -> "and "
+    Or(a, b) -> "or "
+    Copy(val) -> "copy " <> display_value(val)
+    Ret(val) -> "val"
+    Jnz(val, label1, label2) -> "jnz"
+    Jmp(str) -> "jmp"
+    Call(val1, #(typ, val2)) -> "call"
+    Alloc4(int) -> int.to_string(int)
+    Alloc8(int) -> int.to_string(int)
+    Alloc16(int) -> int.to_string(int)
+    Store(typ, val1, val2) -> "store"
+    Load(typ, val) -> "load"
+    Blit(val1, val2, int) -> "blit"
+  }
 }
 
 // QBE Value for instructions
@@ -103,8 +124,7 @@ pub type Type {
   Halfword
 }
 
-// Agreegate type with a specified name
-// Agreegate(TypeDef)
+//Agreegate(TypeDef)
 
 // Display Type function
 pub fn display_type(ty: Type) -> String {
@@ -155,14 +175,14 @@ pub type TypeDef {
 }
 
 // Display function for TypeDef
-pub fn display_type_def() -> Nil {
+pub fn display_type_def(def: TypeDef) -> String {
   todo
 }
 
 // QBE Data definition item
 pub type DataItem {
   // Symbol and offset
-  Symbol(String, Int)
+  Symbol(String, Option(Int))
   // String
   Str(String)
   //
@@ -170,8 +190,17 @@ pub type DataItem {
 }
 
 // Display function for DataItem
-pub fn display_data_item() -> String {
-  todo
+pub fn display_data_item(item: DataItem) -> String {
+  case item {
+    Symbol(name, offset) -> {
+      case offset {
+        Some(off) -> "$" <> name <> " +" <> int.to_string(off)
+        None -> "$" <> name
+      }
+    }
+    Str(string) -> "\"" <> string <> "\""
+    Constant(val) -> int.to_string(val)
+  }
 }
 
 // IR Statement
@@ -180,9 +209,14 @@ pub type Statement {
   Volatile(Inst)
 }
 
-// Display function for Statement
-pub fn display_statement() -> String {
-  todo
+// Display function for Statement 
+// TODO: FINISH AFTER DISPLAY INST
+pub fn display_statement(state: Statement) -> String {
+  case state {
+    Assign(val, typ, inst) ->
+      display_value(val) <> " =" <> display_type(typ) <> " " <> "inst"
+    Volatile(inst) -> "inst"
+  }
 }
 
 // Function block with a label
@@ -191,7 +225,7 @@ pub type Block {
 }
 
 // Display function for block
-pub fn display_block() -> String {
+pub fn display_block(block: Block) -> String {
   todo
 }
 
