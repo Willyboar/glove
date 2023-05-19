@@ -107,3 +107,40 @@ pub fn display_block_test() {
   |> glove.display_block
   |> should.equal("label:\n%temp1 =w add %a, %b\nret %temp1")
 }
+
+// Tests for QBE.Linkage Display
+pub fn display_linkage_test() {
+  // Test case with exported and section
+  let linkage1 =
+    glove.Linkage(
+      exported: True,
+      section: Some("mysection"),
+      secflags: Some("flags"),
+    )
+  linkage1
+  |> glove.display_linkage
+  |> should.equal("export section \"mysection\" \"flags\" ")
+
+  // Test case with exported and no section
+  let linkage2 = glove.Linkage(exported: True, section: None, secflags: None)
+  linkage2
+  |> glove.display_linkage
+  |> should.equal("export ")
+
+  // Test case with no exported and section
+  let linkage3 =
+    glove.Linkage(
+      exported: False,
+      section: Some("othersection"),
+      secflags: None,
+    )
+  linkage3
+  |> glove.display_linkage
+  |> should.equal("section \"othersection\" ")
+
+  // Test case with no exported and no section
+  let linkage4 = glove.Linkage(exported: False, section: None, secflags: None)
+  linkage4
+  |> glove.display_linkage
+  |> should.equal("")
+}
