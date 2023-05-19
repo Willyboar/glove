@@ -58,3 +58,28 @@ pub fn display_data_item_test() {
   |> glove.display_data_item
   |> should.equal("42")
 }
+
+// Tests for QBE.Statement Display
+pub fn display_statement_test() {
+  // Test Assign statement
+  let assign =
+    glove.Assign(
+      glove.Temporary("temp"),
+      glove.Word,
+      glove.Add(glove.Temporary("a"), glove.Temporary("b")),
+    )
+  assign
+  |> glove.display_statement
+  |> should.equal("%temp =w add %a, %b")
+  // Test Volatile statement
+
+  let volatile = glove.Volatile(glove.Ret(Some(glove.Const(0))))
+  volatile
+  |> glove.display_statement
+  |> should.equal("ret 0")
+
+  let empty_volatile = glove.Volatile(glove.Ret(None))
+  empty_volatile
+  |> glove.display_statement
+  |> should.equal("ret")
+}

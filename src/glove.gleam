@@ -77,19 +77,28 @@ pub fn display_inst(inst: Inst) -> String {
     Div(a, b) -> "div" <> display_value(a) <> ", " <> display_value(b)
     Rem(a, b) -> "rem" <> display_value(a) <> ", " <> display_value(b)
     Comp(ty, cmp, a, b) -> "cmp"
-    And(a, b) -> "and "
-    Or(a, b) -> "or "
+    And(a, b) -> "and " <> display_value(a) <> ", " <> display_value(b)
+    Or(a, b) -> "or " <> display_value(a) <> ", " <> display_value(b)
     Copy(val) -> "copy " <> display_value(val)
-    Ret(val) -> "val"
-    Jnz(val, label1, label2) -> "jnz"
-    Jmp(str) -> "jmp"
+    Ret(val) -> {
+      case val {
+        Some(val) -> "ret " <> display_value(val)
+        None -> "ret"
+      }
+    }
+    Jnz(val, if_nonzero, if_zero) ->
+      "jnz " <> display_value(val) <> ", @" <> if_nonzero <> ", @" <> if_zero
+    Jmp(str) -> "jmp @" <> str
     Call(val1, #(typ, val2)) -> "call"
-    Alloc4(int) -> int.to_string(int)
-    Alloc8(int) -> int.to_string(int)
-    Alloc16(int) -> int.to_string(int)
+    Alloc4(int) -> "alloc4 " <> int.to_string(int)
+    Alloc8(int) -> "alloc8 " <> int.to_string(int)
+    Alloc16(int) -> "alloc16 " <> int.to_string(int)
     Store(typ, val1, val2) -> "store"
     Load(typ, val) -> "load"
-    Blit(val1, val2, int) -> "blit"
+    Blit(src, dest, n) ->
+      "blit " <> display_value(src) <> ", " <> display_value(dest) <> ", " <> int.to_string(
+        n,
+      )
   }
 }
 
@@ -210,12 +219,13 @@ pub type Statement {
 }
 
 // Display function for Statement 
-// TODO: FINISH AFTER DISPLAY INST
 pub fn display_statement(state: Statement) -> String {
   case state {
     Assign(val, typ, inst) ->
-      display_value(val) <> " =" <> display_type(typ) <> " " <> "inst"
-    Volatile(inst) -> "inst"
+      display_value(val) <> " =" <> display_type(typ) <> " " <> display_inst(
+        inst,
+      )
+    Volatile(inst) -> display_inst(inst)
   }
 }
 
