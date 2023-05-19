@@ -1,5 +1,7 @@
 import gleam/int
+import gleam/string
 import gleam/option.{None, Option, Some}
+import gleam/list
 
 // QBE Comparison Operators
 pub type Comp {
@@ -185,7 +187,12 @@ pub type TypeDef {
 
 // Display function for TypeDef
 pub fn display_type_def(def: TypeDef) -> String {
-  todo
+  let align_str = case def.align {
+    Some(align) -> "align " <> int.to_string(align) <> " "
+    None -> ""
+  }
+
+  "type :" <> def.name <> " = " <> align_str <> "{ " <> " }"
 }
 
 // QBE Data definition item
@@ -219,8 +226,8 @@ pub type Statement {
 }
 
 // Display function for Statement 
-pub fn display_statement(state: Statement) -> String {
-  case state {
+pub fn display_statement(stmt: Statement) -> String {
+  case stmt {
     Assign(val, typ, inst) ->
       display_value(val) <> " =" <> display_type(typ) <> " " <> display_inst(
         inst,
@@ -231,12 +238,18 @@ pub fn display_statement(state: Statement) -> String {
 
 // Function block with a label
 pub type Block {
-  Block(label: String, statements: #(Statement))
+  Block(label: String, statements: List(Statement))
 }
 
 // Display function for block
 pub fn display_block(block: Block) -> String {
-  todo
+  let label = block.label
+  let statements =
+    block.statements
+    |> list.map(display_statement)
+    |> string.join("\n")
+
+  label <> ":\n" <> statements
 }
 
 /// Adds a new instruction to the block
@@ -312,7 +325,7 @@ pub fn private_with_section() -> Nil {
   todo
 }
 
-/// A complete IL file
+// A complete IL file
 pub type Module {
   Module(functions: #(Function), types: #(TypeDef), data: #(DataDef))
 }

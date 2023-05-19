@@ -1,4 +1,5 @@
 import gleam/option.{None, Some}
+import gleam/list
 import gleeunit
 import gleeunit/should
 import glove
@@ -82,4 +83,28 @@ pub fn display_statement_test() {
   empty_volatile
   |> glove.display_statement
   |> should.equal("ret")
+}
+
+// Tests for QBE.Block Display
+pub fn display_block_test() {
+  // Test empty block
+  let empty_block = glove.Block("label", [])
+  empty_block
+  |> glove.display_block()
+  |> should.equal("label:\n")
+
+  // Test block with statements
+  let statements = [
+    glove.Assign(
+      glove.Temporary("temp1"),
+      glove.Word,
+      glove.Add(glove.Temporary("a"), glove.Temporary("b")),
+    ),
+    glove.Volatile(glove.Ret(Some(glove.Temporary("temp1")))),
+  ]
+
+  let block_with_statements = glove.Block("label", statements)
+  block_with_statements
+  |> glove.display_block
+  |> should.equal("label:\n%temp1 =w add %a, %b\nret %temp1")
 }
