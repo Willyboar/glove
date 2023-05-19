@@ -1,6 +1,6 @@
 name = "glove"
 version = "0.1.0"
-description = "A Gleam project"
+description = "Gleam QBE IR Generator"
 
 # Fill out these fields if you intend to generate HTML documentation or publish
 # your project to the Hex package manager.

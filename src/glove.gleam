@@ -78,7 +78,38 @@ pub fn display_inst(inst: Inst) -> String {
     Mul(a, b) -> "mul" <> display_value(a) <> ", " <> display_value(b)
     Div(a, b) -> "div" <> display_value(a) <> ", " <> display_value(b)
     Rem(a, b) -> "rem" <> display_value(a) <> ", " <> display_value(b)
-    Comp(ty, cmp, a, b) -> "cmp"
+    Comp(ty, cmp, a, b) -> {
+      case ty {
+        Agreegate(_) -> "Cannot Compare aggregate types"
+        _ ->
+          case cmp {
+            Slt ->
+              "c" <> "slt" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+                b,
+              )
+            Sle ->
+              "c" <> "sle" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+                b,
+              )
+            Sgt ->
+              "c" <> "sgt" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+                b,
+              )
+            Sge ->
+              "c" <> "sge" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+                b,
+              )
+            Eq ->
+              "c" <> "eq" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+                b,
+              )
+            Ne ->
+              "c" <> "ne" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+                b,
+              )
+          }
+      }
+    }
     And(a, b) -> "and " <> display_value(a) <> ", " <> display_value(b)
     Or(a, b) -> "or " <> display_value(a) <> ", " <> display_value(b)
     Copy(val) -> "copy " <> display_value(val)
@@ -95,10 +126,18 @@ pub fn display_inst(inst: Inst) -> String {
     Alloc4(int) -> "alloc4 " <> int.to_string(int)
     Alloc8(int) -> "alloc8 " <> int.to_string(int)
     Alloc16(int) -> "alloc16 " <> int.to_string(int)
-    Store(typ, val1, val2) -> "store"
+    Store(typ, value, dest) ->
+      case typ {
+        Agreegate(_) -> "Store to an aggregate type"
+        _ ->
+          "store" <> display_type(typ) <> " " <> display_value(value) <> " " <> display_value(
+            dest,
+          )
+      }
+
     Load(typ, val) ->
       case typ {
-        Agreegate(typ) -> "Load aggregate type"
+        Agreegate(_) -> "Load aggregate type"
         _ -> "load" <> display_type(typ) <> " " <> display_value(val)
       }
     Blit(src, dest, n) ->
