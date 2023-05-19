@@ -96,7 +96,11 @@ pub fn display_inst(inst: Inst) -> String {
     Alloc8(int) -> "alloc8 " <> int.to_string(int)
     Alloc16(int) -> "alloc16 " <> int.to_string(int)
     Store(typ, val1, val2) -> "store"
-    Load(typ, val) -> "load"
+    Load(typ, val) ->
+      case typ {
+        Agreegate(typ) -> "Load aggregate type"
+        _ -> "load" <> display_type(typ) <> " " <> display_value(val)
+      }
     Blit(src, dest, n) ->
       "blit " <> display_value(src) <> ", " <> display_value(dest) <> ", " <> int.to_string(
         n,
@@ -133,9 +137,10 @@ pub type Type {
   // Extended Types
   Byte
   Halfword
+  Agreegate(TypeDef)
 }
 
-//Agreegate(TypeDef)
+//
 
 // Display Type function
 pub fn display_type(ty: Type) -> String {
@@ -146,8 +151,9 @@ pub fn display_type(ty: Type) -> String {
     Long -> "l"
     Single -> "s"
     Double -> "d"
+    // Aggregate type with a specified name
+    Agreegate(ty) -> display_type_def(ty)
   }
-  //Agreegate(TypeDef) -> display_type_def(TypeDef)
 }
 
 // Returns a C ABI type. Extended types are converted to closest base
@@ -192,7 +198,9 @@ pub fn display_type_def(def: TypeDef) -> String {
     None -> ""
   }
 
-  "type :" <> def.name <> " = " <> align_str <> "{ " <> " }"
+  let items_str = "asdf"
+
+  "type :" <> def.name <> " = " <> align_str <> "{ " <> items_str <> " }"
 }
 
 // QBE Data definition item
@@ -201,7 +209,7 @@ pub type DataItem {
   Symbol(String, Option(Int))
   // String
   Str(String)
-  //
+  // Integer
   Constant(Int)
 }
 
@@ -274,7 +282,7 @@ pub type Function {
     name: String,
     arguments: #(Type, Value),
     return_ty: Type,
-    blocks: #(Block),
+    blocks: List(Block),
   )
 }
 
@@ -327,12 +335,12 @@ pub fn private_with_section() -> Nil {
 
 // A complete IL file
 pub type Module {
-  Module(functions: #(Function), types: #(TypeDef), data: #(DataDef))
+  Module(functions: List(Function), types: List(TypeDef), data: List(DataDef))
 }
 
 // Creates a new module
 //pub fn new_module() -> Module {
-//  Module(functions: #(), types: #(), data: #())
+//  Module(functions: list(), types: list(), data: list())
 //}
 
 // Display function for Module

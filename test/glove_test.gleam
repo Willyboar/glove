@@ -1,5 +1,4 @@
 import gleam/option.{None, Some}
-import gleam/list
 import gleeunit
 import gleeunit/should
 import glove
