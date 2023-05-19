@@ -122,7 +122,7 @@ pub fn display_inst(inst: Inst) -> String {
     Jnz(val, if_nonzero, if_zero) ->
       "jnz " <> display_value(val) <> ", @" <> if_nonzero <> ", @" <> if_zero
     Jmp(str) -> "jmp @" <> str
-    Call(val1, #(typ, val2)) -> "call"
+    Call(name, #(typ, arg)) -> "call"
     Alloc4(int) -> "alloc4 " <> int.to_string(int)
     Alloc8(int) -> "alloc8 " <> int.to_string(int)
     Alloc16(int) -> "alloc16 " <> int.to_string(int)
@@ -362,6 +362,22 @@ pub type Linkage {
   Linkage(exported: Bool, section: Option(String), secflags: Option(String))
 }
 
+pub fn display_linkage(linkage: Linkage) -> String {
+  let exported_str = case linkage.exported {
+    True -> "export "
+    False -> ""
+  }
+  let section_str = case linkage.section {
+    Some(section) ->
+      "section \"" <> section <> "\"" <> case linkage.secflags {
+        Some(secflags) -> " \"" <> secflags <> "\""
+        None -> ""
+      } <> " "
+    None -> ""
+  }
+  exported_str <> section_str
+}
+
 // Returns the default configuration for private linkage
 pub fn private() -> Linkage {
   todo
@@ -372,7 +388,7 @@ pub fn private_with_section() -> Nil {
   todo
 }
 
-// A complete IL file
+// A complete IL file 
 pub type Module {
   Module(functions: List(Function), types: List(TypeDef), data: List(DataDef))
 }
