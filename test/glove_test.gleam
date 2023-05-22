@@ -1,4 +1,5 @@
 import gleam/option.{None, Some}
+import gleam/list
 import gleeunit
 import gleeunit/should
 import glove
@@ -143,4 +144,25 @@ pub fn display_linkage_test() {
   linkage4
   |> glove.display_linkage
   |> should.equal("")
+}
+
+// Tests for QBE.Typedef
+pub fn display_type_def_test() {
+  // Test case 1: TypeDef with no alignment and single item
+  let def1 = glove.TypeDef("myType", None, [#(glove.Word, 1)])
+  def1
+  |> glove.display_type_def
+  |> should.equal("type :myType = { w }")
+
+  // Test case 2: TypeDef with alignment and multiple items
+  let def2 =
+    glove.TypeDef(
+      "struct",
+      Some(4),
+      [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
+    )
+  def2
+  |> glove.display_type_def
+  |> should.equal("type :struct = align 4 { w 2, w, w 3 }")
+  // Add more test cases as needed
 }
