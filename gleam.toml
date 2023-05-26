@@ -4,7 +4,7 @@ description = "Gleam QBE IR Generator"
 licences = ["MIT"]
 
 [dependencies]
-gleam_stdlib = "~> 0.28"
+gleam_stdlib = "~> 0.29"
 
 [dev-dependencies]
 gleeunit = "~> 0.10"

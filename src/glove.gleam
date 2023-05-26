@@ -46,7 +46,7 @@ pub type Inst {
   /// Unconditionally jumps to a label
   Jmp(String)
   /// Calls a function
-  Call(Value, #(Type, Value))
+  Call(Value, List(#(Type, Value)))
   /// Allocates a 4-byte aligned area on the stack
   Alloc4(Int)
   /// Allocates a 8-byte aligned area on the stack
@@ -74,37 +74,37 @@ pub type Inst {
 pub fn display_inst(inst: Inst) -> String {
   case inst {
     Add(a, b) -> "add " <> display_value(a) <> ", " <> display_value(b)
-    Sub(a, b) -> "sub" <> display_value(a) <> ", " <> display_value(b)
-    Mul(a, b) -> "mul" <> display_value(a) <> ", " <> display_value(b)
-    Div(a, b) -> "div" <> display_value(a) <> ", " <> display_value(b)
-    Rem(a, b) -> "rem" <> display_value(a) <> ", " <> display_value(b)
+    Sub(a, b) -> "sub " <> display_value(a) <> ", " <> display_value(b)
+    Mul(a, b) -> "mul " <> display_value(a) <> ", " <> display_value(b)
+    Div(a, b) -> "div " <> display_value(a) <> ", " <> display_value(b)
+    Rem(a, b) -> "rem " <> display_value(a) <> ", " <> display_value(b)
     Comp(ty, cmp, a, b) -> {
       case ty {
-        Agreegate(_) -> "Cannot Compare aggregate types"
+        Aggregate(_) -> "Cannot Compare aggregate types"
         _ ->
           case cmp {
             Slt ->
-              "c" <> "slt" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+              "c" <> "slt" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
                 b,
               )
             Sle ->
-              "c" <> "sle" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+              "c" <> "sle" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
                 b,
               )
             Sgt ->
-              "c" <> "sgt" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+              "c" <> "sgt" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
                 b,
               )
             Sge ->
-              "c" <> "sge" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+              "c" <> "sge" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
                 b,
               )
             Eq ->
-              "c" <> "eq" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+              "c" <> "eq" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
                 b,
               )
             Ne ->
-              "c" <> "ne" <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
+              "c" <> "ne" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
                 b,
               )
           }
@@ -122,13 +122,25 @@ pub fn display_inst(inst: Inst) -> String {
     Jnz(val, if_nonzero, if_zero) ->
       "jnz " <> display_value(val) <> ", @" <> if_nonzero <> ", @" <> if_zero
     Jmp(str) -> "jmp @" <> str
-    Call(name, #(typ, arg)) -> "call"
+    Call(name, args) -> {
+      let arg_str =
+        args
+        |> list.index_map(fn(_, arg) {
+          case arg {
+            #(ty, val) -> display_type(ty) <> " " <> display_value(val)
+          }
+        })
+        |> string.join(", ")
+
+      "call " <> display_value(name) <> "(" <> arg_str <> ")"
+    }
+
     Alloc4(int) -> "alloc4 " <> int.to_string(int)
     Alloc8(int) -> "alloc8 " <> int.to_string(int)
     Alloc16(int) -> "alloc16 " <> int.to_string(int)
     Store(typ, value, dest) ->
       case typ {
-        Agreegate(_) -> "Store to an aggregate type"
+        Aggregate(_) -> "Store to an aggregate type"
         _ ->
           "store" <> display_type(typ) <> " " <> display_value(value) <> " " <> display_value(
             dest,
@@ -137,7 +149,7 @@ pub fn display_inst(inst: Inst) -> String {
 
     Load(typ, val) ->
       case typ {
-        Agreegate(_) -> "Load aggregate type"
+        Aggregate(_) -> "Load aggregate type"
         _ -> "load" <> display_type(typ) <> " " <> display_value(val)
       }
     Blit(src, dest, n) ->
@@ -176,7 +188,7 @@ pub type Type {
   /// Extended Types
   Byte
   Halfword
-  Agreegate(TypeDef)
+  Aggregate(TypeDef)
 }
 
 /// Display Type function
@@ -188,7 +200,7 @@ pub fn display_type(ty: Type) -> String {
     Long -> "l"
     Single -> "s"
     Double -> "d"
-    Agreegate(ty) -> display_type_def(ty)
+    Aggregate(ty) -> display_type_def(ty)
   }
 }
 
@@ -245,10 +257,9 @@ pub fn display_type_def(def: TypeDef) -> String {
     |> list.index_map(fn(_, item) {
       case item {
         #(ty, count) ->
-          case count {
-            0 -> display_type(ty)
-            1 -> display_type(ty)
-            _ -> display_type(ty) <> " " <> int.to_string(count)
+          case count > 1 {
+            False -> display_type(ty)
+            True -> display_type(ty) <> " " <> int.to_string(count)
           }
       }
     })
