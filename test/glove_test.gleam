@@ -400,3 +400,23 @@ pub fn display_inst_test() {
   |> glove.display_inst
   |> should.equal("blit %r3, %r4, 8")
 }
+
+pub fn display_data_def_test() {
+  // Test case with all fields populated
+  let linkage =
+    glove.Linkage(
+      exported: True,
+      section: Some("mysection"),
+      secflags: Some("flags"),
+    )
+  let items = [
+    #(glove.Single, glove.Constant(42)),
+    #(glove.Double, glove.Constant(3)),
+  ]
+  let def = glove.DataDef(linkage, "mydata", Some(4), items)
+
+  let expected =
+    "export section \"mysection\" \"flags\" data $mydata = align 4 { s 42, d 3 }"
+  let result = glove.display_data_def(def)
+  should.equal(result, expected)
+}

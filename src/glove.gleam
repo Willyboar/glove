@@ -226,7 +226,7 @@ pub type DataDef {
   DataDef(
     linkage: Linkage,
     name: String,
-    align: Int,
+    align: Option(Int),
     items: List(#(Type, DataItem)),
   )
 }
@@ -236,8 +236,23 @@ pub fn new_datadef() -> DataDef {
 }
 
 /// Display function for Datadef
-pub fn display_datadef() -> String {
-  todo
+pub fn display_data_def(def: DataDef) -> String {
+  let linkage_str = display_linkage(def.linkage)
+  let align_str = case def.align {
+    Some(align) -> "align " <> int.to_string(align)
+    None -> ""
+  }
+
+  let items_str =
+    def.items
+    |> list.index_map(fn(_, item) {
+      case item {
+        #(ty, di) -> display_type(ty) <> " " <> display_data_item(di)
+      }
+    })
+    |> string.join(", ")
+
+  linkage_str <> "data $" <> def.name <> " = " <> align_str <> " { " <> items_str <> " }"
 }
 
 /// QBE aggregate type definition
@@ -406,12 +421,20 @@ pub fn display_linkage(linkage: Linkage) -> String {
 
 /// Returns the default configuration for private linkage
 pub fn private() -> Linkage {
-  todo
+  Linkage(exported: False, section: None, secflags: None)
 }
 
 /// Returns the configuration for private linkage with a provided section
-pub fn private_with_section() -> Nil {
-  todo
+pub fn private_with_section(section: String) -> Linkage {
+  Linkage(exported: False, section: Some(section), secflags: None)
+}
+
+pub fn public() -> Linkage {
+  Linkage(exported: True, section: None, secflags: None)
+}
+
+pub fn public_with_section(section: String) -> Linkage {
+  Linkage(exported: True, section: Some(section), secflags: None)
 }
 
 /// A complete IL file 
@@ -419,10 +442,11 @@ pub type Module {
   Module(functions: List(Function), types: List(TypeDef), data: List(DataDef))
 }
 
-//pub fn new_module() -> Module {
-// Module(functions: list(), types: list(), data: list())
-//}
 /// Creates a new module
+pub fn new_module() -> Module {
+  Module(functions: [], types: [], data: [])
+}
+
 /// Display function for Module
 pub fn display_module(module: Module) -> String {
   todo
