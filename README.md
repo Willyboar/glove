@@ -1,14 +1,22 @@
 
 <img src="https://github.com/Willyboar/glove/assets/22755228/bfd9673f-a105-4083-82d8-84bf4b0ff071">
 
-## Don't Use it (WIP)
+## Don't Use it yet (WIP)
 
 [![Package Version](https://img.shields.io/hexpm/v/glove)](https://hex.pm/packages/glove)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glove/)
 
 
-A Gleam library to generate QBE IR code 
+## About 
+Glove is a library for working with QBE intermediate representation (IR) in Gleam. Provides utilities and functions to generate QBE code using the Gleam programming language. 
 
+## Requirements
+
+To use Glove, you need to have the following dependencies installed:
+
+Gleam programming language - Install instructions can be found [here](https://gleam.run/getting-started/installing/)
+
+QBE Backend can be found [here](https://c9x.me/compile/)
 
 
 ## Quick start

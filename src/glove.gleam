@@ -211,7 +211,12 @@ pub fn size() -> Int {
 
 /// QBE data definition
 pub type DataDef {
-  DataDef(linkage: Linkage, name: String, align: Int, items: #(Type, DataItem))
+  DataDef(
+    linkage: Linkage,
+    name: String,
+    align: Int,
+    items: List(#(Type, DataItem)),
+  )
 }
 
 pub fn new_datadef() -> DataDef {

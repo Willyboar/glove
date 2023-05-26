@@ -1,5 +1,4 @@
 import gleam/option.{None, Some}
-import gleam/list
 import gleeunit
 import gleeunit/should
 import glove
@@ -165,4 +164,45 @@ pub fn display_type_def_test() {
   |> glove.display_type_def
   |> should.equal("type :struct = align 4 { w 2, w, w 3 }")
   // Add more test cases as needed
+}
+
+// Tests for QBE.Types
+pub fn display_type_test() {
+  // Test case 1: Base types
+  let result1 = glove.Word
+  result1
+  |> glove.display_type
+  |> should.equal("w")
+
+  let result2 = glove.Long
+  result2
+  |> glove.display_type
+  |> should.equal("l")
+
+  let result3 = glove.Single
+  result3
+  |> glove.display_type
+  |> should.equal("s")
+
+  let result4 = glove.Double
+  result4
+  |> glove.display_type
+  |> should.equal("d")
+
+  let result5 = glove.Byte
+  result5
+  |> glove.display_type
+  |> should.equal("b")
+
+  let result6 = glove.Halfword
+  result6
+  |> glove.display_type
+  |> should.equal("h")
+
+  // Test case 2: Extended types
+  let def1 = glove.TypeDef("myType", None, [#(glove.Word, 1)])
+  let result5 = glove.Agreegate(def1)
+  result5
+  |> glove.display_type
+  |> should.equal("type :myType = { w }")
 }
