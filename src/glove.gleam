@@ -70,7 +70,6 @@ pub type Inst {
 }
 
 /// Display function for Instructions
-/// UNFINISHED
 pub fn display_inst(inst: Inst) -> String {
   case inst {
     Add(a, b) -> "add " <> display_value(a) <> ", " <> display_value(b)
@@ -115,8 +114,8 @@ pub fn display_inst(inst: Inst) -> String {
     Copy(val) -> "copy " <> display_value(val)
     Ret(val) -> {
       case val {
-        Some(val) -> "ret " <> display_value(val)
-        None -> "ret"
+        Some(val) -> "ret " <> display_value(val) <> "\n"
+        None -> "ret\n"
       }
     }
     Jnz(val, if_nonzero, if_zero) ->
@@ -239,7 +238,7 @@ pub fn new_datadef() -> DataDef {
 pub fn display_data_def(def: DataDef) -> String {
   let linkage_str = display_linkage(def.linkage)
   let align_str = case def.align {
-    Some(align) -> "align " <> int.to_string(align)
+    Some(align) -> " align " <> int.to_string(align)
     None -> ""
   }
 
@@ -252,7 +251,7 @@ pub fn display_data_def(def: DataDef) -> String {
     })
     |> string.join(", ")
 
-  linkage_str <> "data $" <> def.name <> " = " <> align_str <> " { " <> items_str <> " }"
+  linkage_str <> "data $" <> def.name <> " =" <> align_str <> " { " <> items_str <> " }"
 }
 
 /// QBE aggregate type definition
@@ -337,7 +336,7 @@ pub fn display_block(block: Block) -> String {
     |> list.map(display_statement)
     |> string.join("\n")
 
-  label <> ":\n" <> statements
+  label <> "\n" <> statements
 }
 
 /// Adds a new instruction to the block
@@ -360,15 +359,44 @@ pub type Function {
   Function(
     linkage: Linkage,
     name: String,
-    arguments: #(Type, Value),
-    return_ty: Type,
+    arguments: List(#(Type, Value)),
+    return_ty: Option(Type),
     blocks: List(Block),
   )
 }
 
 /// Display function for functions
-pub fn display_function() -> String {
-  todo
+pub fn display_function(func: Function) -> String {
+  let linkage_str = display_linkage(func.linkage)
+  let name_str = func.name
+  let return_str = case func.return_ty {
+    Some(ty) -> display_type(ty)
+    None -> ""
+  }
+  let args_str = display_arguments(func.arguments)
+  let blocks_str = display_blocks(func.blocks)
+
+  linkage_str <> "function" <> " " <> return_str <> " " <> "$" <> name_str <> "(" <> args_str <> ")" <> " {\n" <> blocks_str <> "}"
+}
+
+pub fn display_arguments(arguments: List(#(Type, Value))) -> String {
+  case arguments {
+    [] -> ""
+    _ ->
+      arguments
+      |> list.index_map(fn(_, arg) {
+        case arg {
+          #(ty, val) -> display_type(ty) <> " " <> display_value(val)
+        }
+      })
+      |> string.join(", ")
+  }
+}
+
+pub fn display_blocks(blocks: List(Block)) -> String {
+  blocks
+  |> list.map(fn(block) { display_block(block) })
+  |> string.join("\n")
 }
 
 /// Instantiates an empty function and returns it

@@ -76,12 +76,12 @@ pub fn display_statement_test() {
   let volatile = glove.Volatile(glove.Ret(Some(glove.Const(0))))
   volatile
   |> glove.display_statement
-  |> should.equal("ret 0")
+  |> should.equal("ret 0\n")
 
   let empty_volatile = glove.Volatile(glove.Ret(None))
   empty_volatile
   |> glove.display_statement
-  |> should.equal("ret")
+  |> should.equal("ret\n")
 }
 
 // Tests for QBE.Block Display
@@ -90,7 +90,7 @@ pub fn display_block_test() {
   let empty_block = glove.Block("label", [])
   empty_block
   |> glove.display_block()
-  |> should.equal("label:\n")
+  |> should.equal("label\n")
 
   // Test block with statements
   let statements = [
@@ -105,7 +105,7 @@ pub fn display_block_test() {
   let block_with_statements = glove.Block("label", statements)
   block_with_statements
   |> glove.display_block
-  |> should.equal("label:\n%temp1 =w add %a, %b\nret %temp1")
+  |> should.equal("label\n%temp1 =w add %a, %b\nret %temp1\n")
 }
 
 // Tests for QBE.Linkage Display
@@ -315,13 +315,13 @@ pub fn display_inst_test() {
   let ret1 = glove.Ret(Some(glove.Const(10)))
   ret1
   |> glove.display_inst
-  |> should.equal("ret 10")
+  |> should.equal("ret 10\n")
 
   // Test case for returning without a value
   let ret2 = glove.Ret(None)
   ret2
   |> glove.display_inst
-  |> should.equal("ret")
+  |> should.equal("ret\n")
 
   // Test case for conditional jump if nonzero
   let jnz = glove.Jnz(glove.Const(1), "label1", "label2")
@@ -418,5 +418,112 @@ pub fn display_data_def_test() {
   let expected =
     "export section \"mysection\" \"flags\" data $mydata = align 4 { s 42, d 3 }"
   let result = glove.display_data_def(def)
+  should.equal(result, expected)
+}
+
+// Tests for Linkage functions
+pub fn private_test() {
+  let expected = glove.Linkage(exported: False, section: None, secflags: None)
+  let result = glove.private()
+  should.equal(result, expected)
+}
+
+pub fn private_with_section_test() {
+  let section = "mysection"
+  let expected =
+    glove.Linkage(exported: False, section: Some(section), secflags: None)
+  let result = glove.private_with_section(section)
+  should.equal(result, expected)
+}
+
+pub fn public_test() {
+  let expected = glove.Linkage(exported: True, section: None, secflags: None)
+  let result = glove.public()
+  should.equal(result, expected)
+}
+
+pub fn public_with_section_test() {
+  let section = "mysection"
+  let expected =
+    glove.Linkage(exported: True, section: Some(section), secflags: None)
+  let result = glove.public_with_section(section)
+  should.equal(result, expected)
+}
+
+pub fn display_data_test() {
+  let data_def =
+    glove.DataDef(
+      linkage: glove.Linkage(exported: True, section: None, secflags: None),
+      name: "str",
+      align: None,
+      items: [
+        #(glove.Byte, glove.Str("hello world")),
+        #(glove.Byte, glove.Constant(0)),
+      ],
+    )
+
+  let expected = "export data $str = { b \"hello world\", b 0 }"
+  let result = glove.display_data_def(data_def)
+  should.equal(result, expected)
+}
+
+pub fn display_function_test() {
+  let function =
+    glove.Function(
+      linkage: glove.Linkage(exported: True, section: None, secflags: None),
+      name: "main",
+      arguments: [],
+      return_ty: Some(glove.Word),
+      blocks: [
+        glove.Block(
+          "@start",
+          [
+            glove.Volatile(glove.Call(
+              glove.Global("puts"),
+              [#(glove.Long, glove.Global("str"))],
+            )),
+            glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+          ],
+        ),
+      ],
+    )
+
+  let expected =
+    "export function w $main() {\n@start\ncall $puts(l $str)\nret 0\n}"
+
+  let result = glove.display_function(function)
+  should.equal(result, expected)
+}
+
+pub fn display_blocks_test() {
+  let blocks = [
+    glove.Block(
+      "@start",
+      [
+        glove.Volatile(glove.Call(
+          glove.Global("puts"),
+          [#(glove.Long, glove.Global("str"))],
+        )),
+        glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+      ],
+    ),
+  ]
+
+  let expected = "@start\ncall $puts(l $str)\nret 0\n"
+
+  let result = glove.display_blocks(blocks)
+  should.equal(result, expected)
+}
+
+pub fn display_arguments_test() {
+  let arguments = [
+    #(glove.Word, glove.Global("arg1")),
+    #(glove.Byte, glove.Global("arg2")),
+    #(glove.Long, glove.Global("arg3")),
+  ]
+
+  let expected = "w $arg1, b $arg2, l $arg3"
+
+  let result = glove.display_arguments(arguments)
   should.equal(result, expected)
 }
