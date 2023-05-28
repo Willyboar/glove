@@ -527,3 +527,90 @@ pub fn display_arguments_test() {
   let result = glove.display_arguments(arguments)
   should.equal(result, expected)
 }
+
+pub fn display_module_test() {
+  // Test case with empty module
+  let empty_module = glove.Module(functions: [], types: [], data: [])
+  empty_module
+  |> glove.display_module
+  |> should.equal("\n\n\n\n")
+
+  // Test case with functions, types, and data
+  let add_func =
+    glove.Function(
+      linkage: glove.private(),
+      name: "add",
+      arguments: [
+        #(glove.Word, glove.Temporary("a")),
+        #(glove.Word, glove.Temporary("b")),
+      ],
+      return_ty: Some(glove.Word),
+      blocks: [
+        glove.Block(
+          label: "@start",
+          statements: [
+            glove.Assign(
+              glove.Temporary("c"),
+              glove.Word,
+              glove.Add(glove.Temporary("a"), glove.Temporary("b")),
+            ),
+            glove.Volatile(glove.Ret(Some(glove.Temporary("c")))),
+          ],
+        ),
+      ],
+    )
+
+  let main_func =
+    glove.Function(
+      linkage: glove.public(),
+      name: "main",
+      arguments: [],
+      return_ty: Some(glove.Word),
+      blocks: [
+        glove.Block(
+          label: "@start",
+          statements: [
+            glove.Assign(
+              glove.Temporary("r"),
+              glove.Word,
+              glove.Call(
+                glove.Global("add"),
+                [#(glove.Word, glove.Const(1)), #(glove.Word, glove.Const(1))],
+              ),
+            ),
+            glove.Volatile(glove.Call(
+              glove.Global("printf"),
+              [
+                #(glove.Long, glove.Global("fmt")),
+                #(glove.Word, glove.Temporary("r")),
+              ],
+            )),
+            glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+          ],
+        ),
+      ],
+    )
+
+  let functions = [add_func, main_func]
+
+  let fmt_data =
+    glove.DataDef(
+      linkage: glove.private(),
+      name: "fmt",
+      align: None,
+      items: [
+        #(glove.Byte, glove.Str("One and one make %d!\n")),
+        #(glove.Byte, glove.Constant(0)),
+      ],
+    )
+
+  let data = [fmt_data]
+
+  let module = glove.Module(functions: functions, types: [], data: data)
+
+  module
+  |> glove.display_module
+  |> should.equal(
+    "function w $add(w %a, w %b) {\n" <> "@start\n" <> "%c =w add %a, %b\n" <> "ret %c\n}\n\n" <> "export function w $main() {\n" <> "@start\n" <> "%r =w call $add(w 1, w 1)\n" <> "call $printf(l $fmt, w %r)\n" <> "ret 0\n}\n\n\n\n" <> "data $fmt = " <> "{ b \"One and one make %d!\n\", b 0 }",
+  )
+}

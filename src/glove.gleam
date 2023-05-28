@@ -127,6 +127,7 @@ pub fn display_inst(inst: Inst) -> String {
         |> list.index_map(fn(_, arg) {
           case arg {
             #(ty, val) -> display_type(ty) <> " " <> display_value(val)
+            _ -> "..."
           }
         })
         |> string.join(", ")
@@ -206,17 +207,24 @@ pub fn display_type(ty: Type) -> String {
 /// Aggregate type with a specified name
 /// Returns a C ABI type. Extended types are converted to closest base
 /// types
-pub fn into_abi() -> Nil {
-  todo
+pub fn into_abi(self) -> Type {
+  case self {
+    Byte | Halfword -> Word
+    other -> other
+  }
 }
 
 /// Returns the closest base type
-pub fn into_base() -> Nil {
-  todo
+pub fn into_base(self) -> Type {
+  case self {
+    Byte | Halfword -> Word
+    Aggregate(_) -> Long
+    other -> other
+  }
 }
 
 /// Returns byte size for values of the type
-pub fn size() -> Int {
+pub fn size(self) -> Int {
   todo
 }
 
@@ -231,7 +239,7 @@ pub type DataDef {
 }
 
 pub fn new_datadef() -> DataDef {
-  todo
+  DataDef(linkage: private(), name: "", align: None, items: [])
 }
 
 /// Display function for Datadef
@@ -370,13 +378,13 @@ pub fn display_function(func: Function) -> String {
   let linkage_str = display_linkage(func.linkage)
   let name_str = func.name
   let return_str = case func.return_ty {
-    Some(ty) -> display_type(ty)
+    Some(ty) -> " " <> display_type(ty)
     None -> ""
   }
   let args_str = display_arguments(func.arguments)
   let blocks_str = display_blocks(func.blocks)
 
-  linkage_str <> "function" <> " " <> return_str <> " " <> "$" <> name_str <> "(" <> args_str <> ")" <> " {\n" <> blocks_str <> "}"
+  linkage_str <> "function" <> return_str <> " " <> "$" <> name_str <> "(" <> args_str <> ")" <> " {\n" <> blocks_str <> "}"
 }
 
 pub fn display_arguments(arguments: List(#(Type, Value))) -> String {
@@ -401,7 +409,13 @@ pub fn display_blocks(blocks: List(Block)) -> String {
 
 /// Instantiates an empty function and returns it
 pub fn new_function() -> Function {
-  todo
+  Function(
+    linkage: private(),
+    name: "",
+    arguments: [],
+    return_ty: None,
+    blocks: [],
+  )
 }
 
 /// Adds a new empty block with a specified label and returns 
@@ -477,17 +491,44 @@ pub fn new_module() -> Module {
 
 /// Display function for Module
 pub fn display_module(module: Module) -> String {
-  todo
+  let functions_str =
+    module.functions
+    |> list.map(display_function)
+    |> string.join("\n\n")
+
+  let types_str =
+    module.types
+    |> list.map(display_type_def)
+    |> string.join("\n\n")
+
+  let data_str =
+    module.data
+    |> list.map(display_data_def)
+    |> string.join("\n\n")
+
+  functions_str <> "\n\n" <> types_str <> "\n\n" <> data_str
 }
 
 pub fn add_function(module: Module, function: Function) -> Module {
-  todo
+  Module(
+    functions: list.append(module.functions, [function]),
+    types: module.types,
+    data: module.data,
+  )
 }
 
 pub fn add_type(module: Module, type_def: TypeDef) -> Module {
-  todo
+  Module(
+    functions: module.functions,
+    types: list.append(module.types, [type_def]),
+    data: module.data,
+  )
 }
 
 pub fn add_data(module: Module, data_def: DataDef) -> Module {
-  todo
+  Module(
+    functions: module.functions,
+    types: module.types,
+    data: list.append(module.data, [data_def]),
+  )
 }
