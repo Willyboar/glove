@@ -7,7 +7,7 @@
 
 
 ## About 
-Glove is a library for working with QBE intermediate representation (IR) in Gleam. Provides utilities and functions to generate QBE code using the Gleam programming language. 
+Glove is a library for working with [QBE](https://c9x.me/compile/) intermediate representation (IR) in Gleam. Provides utilities and functions to generate QBE code using the Gleam programming language. 
 
 ## Requirements
 
