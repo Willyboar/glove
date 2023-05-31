@@ -20,7 +20,7 @@ QBE Backend can be found [here](https://c9x.me/compile/)
 
 ## Quick start
 
-TODO
+You can find a working example [here](https://github.com/Willyboar/glove_example)
 
 ## Run the tests
 ```sh
