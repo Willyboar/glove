@@ -542,7 +542,7 @@ pub fn display_module_test() {
   let empty_module = glove.Module(functions: [], types: [], data: [])
   empty_module
   |> glove.display_module
-  |> should.equal("\n\n\n\n")
+  |> should.equal("\n")
 
   // Test case with functions, types, and data
   let add_func =
@@ -620,7 +620,7 @@ pub fn display_module_test() {
   module
   |> glove.display_module
   |> should.equal(
-    "function w $add(w %a, w %b) {\n" <> "@start\n" <> "%c =w add %a, %b\n" <> "ret %c\n}\n\n" <> "export function w $main() {\n" <> "@start\n" <> "%r =w call $add(w 1, w 1)\n" <> "call $printf(l $fmt, w %r)\n" <> "ret 0\n}\n\n\n\n" <> "data $fmt = " <> "{ b \"One and one make %d!\n\", b 0 }",
+    "function w $add(w %a, w %b) {\n" <> "@start\n" <> "%c =w add %a, %b\n" <> "ret %c\n}\n" <> "export function w $main() {\n" <> "@start\n" <> "%r =w call $add(w 1, w 1)\n" <> "call $printf(l $fmt, w %r)\n" <> "ret 0\n}\n" <> "data $fmt = " <> "{ b \"One and one make %d!\n\", b 0 }",
   )
 }
 

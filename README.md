@@ -22,6 +22,8 @@ QBE Backend can be found [here](https://c9x.me/compile/)
 
 You can find a working example [here](https://github.com/Willyboar/glove_example)
 
+QBE IL Documentation can be found [here](https://c9x.me/compile/doc/il.html)
+
 ## Run the tests
 ```sh
 gleam test  # Run the tests

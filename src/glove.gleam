@@ -520,19 +520,19 @@ pub fn display_module(module: Module) -> String {
   let functions_str =
     module.functions
     |> list.map(display_function)
-    |> string.join("\n\n")
+    |> string.join("\n")
 
   let types_str =
     module.types
     |> list.map(display_type_def)
-    |> string.join("\n\n")
+    |> string.join("\n")
 
   let data_str =
     module.data
     |> list.map(display_data_def)
-    |> string.join("\n\n")
+    |> string.join("\n")
 
-  functions_str <> "\n\n" <> types_str <> "\n\n" <> data_str
+  functions_str <> types_str <> "\n" <> data_str
 }
 
 /// Add function to module
