@@ -31,10 +31,16 @@ gleam test  # Run the tests
 
 ## Installation
 
-If available on Hex this package can be added to your Gleam project:
+Package can be added to your Gleam project:
 
 ```sh
 gleam add glove
 ```
 
 and its documentation can be found at <https://hexdocs.pm/glove>.
+
+## Special Thanks to:
+
+* [lpil](https://github.com/lpil) for creating Gleam
+
+* [Danielle](https://github.com/DanielleMaywood) for helping to complete this library.
