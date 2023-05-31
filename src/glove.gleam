@@ -127,7 +127,6 @@ pub fn display_inst(inst: Inst) -> String {
         |> list.index_map(fn(_, arg) {
           case arg {
             #(ty, val) -> display_type(ty) <> " " <> display_value(val)
-            _ -> "..."
           }
         })
         |> string.join(", ")
@@ -225,7 +224,17 @@ pub fn into_base(self) -> Type {
 
 /// Returns byte size for values of the type
 pub fn size(self) -> Int {
-  todo
+  case self {
+    Byte -> 1
+    Halfword -> 2
+    Word | Single -> 4
+    Long | Double -> 8
+    // This not working 
+    Aggregate(td) ->
+      case td.items {
+        [] -> 0
+      }
+  }
 }
 
 /// QBE data definition
@@ -348,18 +357,37 @@ pub fn display_block(block: Block) -> String {
 }
 
 /// Adds a new instruction to the block
-pub fn add_inst() -> Nil {
-  todo
+pub fn add_inst(block: Block, inst: Inst) -> Block {
+  Block(
+    label: block.label,
+    statements: list.append(block.statements, [Volatile(inst)]),
+  )
 }
 
 /// Adds a new instruction assigned to a temporary
-pub fn assign_inst() -> Nil {
-  todo
+pub fn assign_inst(block: Block, val: Value, typ: Type, inst: Inst) -> Block {
+  Block(
+    label: block.label,
+    statements: list.append(block.statements, [Assign(val, typ, inst)]),
+  )
 }
 
 /// Returns true if the block's last instruction is a jump
-pub fn jumps() -> Bool {
-  todo
+pub fn jumps(block: Block) -> Bool {
+  case list.last(block.statements) {
+    Ok(statement) ->
+      case statement {
+        Volatile(instr) ->
+          case instr {
+            Ret(_) -> True
+            Jmp(_) -> True
+            Jnz(_, _, _) -> True
+            _ -> False
+          }
+        _ -> False
+      }
+    Error(_) -> False
+  }
 }
 
 /// QBE Function
@@ -387,6 +415,7 @@ pub fn display_function(func: Function) -> String {
   linkage_str <> "function" <> return_str <> " " <> "$" <> name_str <> "(" <> args_str <> ")" <> " {\n" <> blocks_str <> "}"
 }
 
+/// Display functions Arguments
 pub fn display_arguments(arguments: List(#(Type, Value))) -> String {
   case arguments {
     [] -> ""
@@ -401,6 +430,7 @@ pub fn display_arguments(arguments: List(#(Type, Value))) -> String {
   }
 }
 
+/// Display blocks
 pub fn display_blocks(blocks: List(Block)) -> String {
   blocks
   |> list.map(fn(block) { display_block(block) })
@@ -420,23 +450,16 @@ pub fn new_function() -> Function {
 
 /// Adds a new empty block with a specified label and returns 
 /// a reference to it
-pub fn add_block() -> Block {
-  todo
+pub fn add_block(label: String) -> Block {
+  Block(label: label, statements: [])
 }
 
 /// Returns a reference to the last block
-pub fn last_block() -> Nil {
-  todo
-}
-
-/// Adds a new instruction to the last block
-pub fn add_instr() -> Nil {
-  todo
-}
-
-/// Adds a new instruction assigned to a temporary
-pub fn assign_instr() -> Nil {
-  todo
+pub fn last_block(blocks: List(Block)) -> Option(Block) {
+  case list.last(blocks) {
+    Ok(block) -> Some(block)
+    Error(_) -> None
+  }
 }
 
 /// Linkage of a function or data defintion (e.g. section and
@@ -445,6 +468,7 @@ pub type Linkage {
   Linkage(exported: Bool, section: Option(String), secflags: Option(String))
 }
 
+/// Display function for Linkage
 pub fn display_linkage(linkage: Linkage) -> String {
   let exported_str = case linkage.exported {
     True -> "export "
@@ -471,10 +495,12 @@ pub fn private_with_section(section: String) -> Linkage {
   Linkage(exported: False, section: Some(section), secflags: None)
 }
 
+/// Returns the default configuration for public linkage
 pub fn public() -> Linkage {
   Linkage(exported: True, section: None, secflags: None)
 }
 
+/// Returns the configuration for public linkage with a provided section
 pub fn public_with_section(section: String) -> Linkage {
   Linkage(exported: True, section: Some(section), secflags: None)
 }
@@ -509,6 +535,7 @@ pub fn display_module(module: Module) -> String {
   functions_str <> "\n\n" <> types_str <> "\n\n" <> data_str
 }
 
+/// Add function to module
 pub fn add_function(module: Module, function: Function) -> Module {
   Module(
     functions: list.append(module.functions, [function]),
@@ -517,6 +544,7 @@ pub fn add_function(module: Module, function: Function) -> Module {
   )
 }
 
+/// Add type to module
 pub fn add_type(module: Module, type_def: TypeDef) -> Module {
   Module(
     functions: module.functions,
@@ -525,6 +553,7 @@ pub fn add_type(module: Module, type_def: TypeDef) -> Module {
   )
 }
 
+/// Add Data to module
 pub fn add_data(module: Module, data_def: DataDef) -> Module {
   Module(
     functions: module.functions,

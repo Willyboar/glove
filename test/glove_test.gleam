@@ -422,12 +422,14 @@ pub fn display_data_def_test() {
 }
 
 // Tests for Linkage functions
+// Test for Linkage private without section
 pub fn private_test() {
   let expected = glove.Linkage(exported: False, section: None, secflags: None)
   let result = glove.private()
   should.equal(result, expected)
 }
 
+// Test for Linkage private with section
 pub fn private_with_section_test() {
   let section = "mysection"
   let expected =
@@ -436,12 +438,14 @@ pub fn private_with_section_test() {
   should.equal(result, expected)
 }
 
+// Test for Linkage public without section
 pub fn public_test() {
   let expected = glove.Linkage(exported: True, section: None, secflags: None)
   let result = glove.public()
   should.equal(result, expected)
 }
 
+// Test for Linkage public with section
 pub fn public_with_section_test() {
   let section = "mysection"
   let expected =
@@ -450,6 +454,7 @@ pub fn public_with_section_test() {
   should.equal(result, expected)
 }
 
+// Tests for display QBE.Datadef
 pub fn display_data_test() {
   let data_def =
     glove.DataDef(
@@ -467,6 +472,7 @@ pub fn display_data_test() {
   should.equal(result, expected)
 }
 
+// Tests for display QBE.functions
 pub fn display_function_test() {
   let function =
     glove.Function(
@@ -495,6 +501,7 @@ pub fn display_function_test() {
   should.equal(result, expected)
 }
 
+// Tests for display QBE.Blocks
 pub fn display_blocks_test() {
   let blocks = [
     glove.Block(
@@ -515,6 +522,7 @@ pub fn display_blocks_test() {
   should.equal(result, expected)
 }
 
+// TEst for display arguments
 pub fn display_arguments_test() {
   let arguments = [
     #(glove.Word, glove.Global("arg1")),
@@ -528,6 +536,7 @@ pub fn display_arguments_test() {
   should.equal(result, expected)
 }
 
+// Tests for display QBE.Modules
 pub fn display_module_test() {
   // Test case with empty module
   let empty_module = glove.Module(functions: [], types: [], data: [])
@@ -613,4 +622,211 @@ pub fn display_module_test() {
   |> should.equal(
     "function w $add(w %a, w %b) {\n" <> "@start\n" <> "%c =w add %a, %b\n" <> "ret %c\n}\n\n" <> "export function w $main() {\n" <> "@start\n" <> "%r =w call $add(w 1, w 1)\n" <> "call $printf(l $fmt, w %r)\n" <> "ret 0\n}\n\n\n\n" <> "data $fmt = " <> "{ b \"One and one make %d!\n\", b 0 }",
   )
+}
+
+// Test for new_datadef function
+pub fn new_datadef_test() {
+  let datadef = glove.new_datadef()
+
+  // Assert the default values
+  should.equal(datadef.linkage, glove.private())
+  should.equal(datadef.name, "")
+  should.equal(datadef.align, None)
+  should.equal(datadef.items, [])
+}
+
+pub fn new_module_test() {
+  let module = glove.new_module()
+
+  // Assert empty lists for functions, types, and data
+  should.equal(module.functions, [])
+  should.equal(module.types, [])
+  should.equal(module.data, [])
+}
+
+pub fn add_function_test() {
+  let module = glove.new_module()
+  let function = glove.new_function()
+  let updated_module = glove.add_function(module, function)
+
+  // Assert the function is added to the module
+  should.equal(updated_module.functions, [function])
+  should.equal(updated_module.types, [])
+  should.equal(updated_module.data, [])
+}
+
+pub fn add_data_test() {
+  let module = glove.new_module()
+  let data_def = glove.new_datadef()
+  let updated_module = glove.add_data(module, data_def)
+
+  // Assert the data definition is added to the module
+  should.equal(updated_module.functions, [])
+  should.equal(updated_module.types, [])
+  should.equal(updated_module.data, [data_def])
+}
+
+pub fn add_type_test() {
+  let module = glove.new_module()
+  let type_def =
+    glove.TypeDef("my_type", None, [#(glove.Word, 2), #(glove.Word, 3)])
+  let updated_module = glove.add_type(module, type_def)
+
+  // Assert the type definition is added to the module
+  should.equal(updated_module.functions, [])
+  should.equal(
+    updated_module.types,
+    [glove.TypeDef("my_type", None, [#(glove.Word, 2), #(glove.Word, 3)])],
+  )
+  should.equal(updated_module.data, [])
+}
+
+// Test for add instruction function
+pub fn add_inst_test() {
+  let block = glove.Block(label: "my_block", statements: [])
+  let inst = glove.Call(glove.Global("foo"), [])
+  let new_block = glove.add_inst(block, inst)
+  should.equal(new_block.statements, [glove.Volatile(inst)])
+}
+
+// Test for assign instruction function
+pub fn assign_inst_test() {
+  let block = glove.Block(label: "my_block", statements: [])
+  let val = glove.Temporary("tmp")
+  let typ = glove.Word
+  let inst = glove.Call(glove.Global("bar"), [])
+  let new_block = glove.assign_inst(block, val, typ, inst)
+  should.equal(new_block.statements, [glove.Assign(val, typ, inst)])
+}
+
+pub fn jumps_test() {
+  let block_with_jump =
+    glove.Block(
+      label: "my_block",
+      statements: [
+        glove.Assign(
+          glove.Temporary("r"),
+          glove.Word,
+          glove.Call(
+            glove.Global("add"),
+            [#(glove.Word, glove.Const(1)), #(glove.Word, glove.Const(1))],
+          ),
+        ),
+        glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+        // Non-jump instruction
+        glove.Assign(
+          glove.Temporary("r"),
+          glove.Word,
+          glove.Call(
+            glove.Global("add"),
+            [#(glove.Word, glove.Const(1)), #(glove.Word, glove.Const(1))],
+          ),
+        ),
+        glove.Volatile(glove.Jmp("label")),
+      ],
+    )
+
+  should.equal(glove.jumps(block_with_jump), True)
+
+  let block_without_jump =
+    glove.Block(
+      label: "my_block",
+      statements: [
+        glove.Assign(
+          glove.Temporary("r"),
+          glove.Word,
+          glove.Call(
+            glove.Global("add"),
+            [#(glove.Word, glove.Const(1)), #(glove.Word, glove.Const(1))],
+          ),
+        ),
+        glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+        // Non-jump instruction
+        glove.Assign(
+          glove.Temporary("r"),
+          glove.Word,
+          glove.Call(
+            glove.Global("add"),
+            [#(glove.Word, glove.Const(1)), #(glove.Word, glove.Const(1))],
+          ),
+        ),
+        glove.Volatile(glove.Add(glove.Const(1), glove.Const(2))),
+      ],
+    )
+
+  should.equal(glove.jumps(block_without_jump), False)
+}
+
+// Test add_block function
+pub fn add_block_test() {
+  let block = glove.add_block("my_block")
+  should.equal(block.label, "my_block")
+  should.equal(block.statements, [])
+}
+
+// Test last_block function
+pub fn last_block_test() {
+  let blocks = [
+    glove.Block(label: "block1", statements: []),
+    glove.Block(label: "block2", statements: []),
+    glove.Block(label: "block3", statements: []),
+  ]
+
+  should.equal(
+    glove.last_block(blocks),
+    Some(glove.Block(label: "block3", statements: [])),
+  )
+
+  let empty_blocks: List(glove.Block) = []
+  should.equal(glove.last_block(empty_blocks), None)
+}
+
+// Test for new function
+pub fn new_function_test() {
+  let function = glove.new_function()
+  should.equal(function.linkage, glove.private())
+  should.equal(function.name, "")
+  should.equal(function.arguments, [])
+  should.equal(function.return_ty, None)
+  should.equal(function.blocks, [])
+}
+
+pub fn into_abi_test() {
+  should.equal(glove.into_abi(glove.Byte), glove.Word)
+  should.equal(glove.into_abi(glove.Halfword), glove.Word)
+  should.equal(glove.into_abi(glove.Word), glove.Word)
+  should.equal(glove.into_abi(glove.Single), glove.Single)
+  should.equal(glove.into_abi(glove.Long), glove.Long)
+  should.equal(glove.into_abi(glove.Double), glove.Double)
+  should.equal(
+    glove.into_abi(glove.Aggregate(glove.TypeDef(
+      "struct",
+      Some(4),
+      [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
+    ))),
+    glove.Aggregate(glove.TypeDef(
+      "struct",
+      Some(4),
+      [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
+    )),
+  )
+  // Assuming td is a valid `TypeDef`
+}
+
+pub fn into_base_test() {
+  should.equal(glove.into_base(glove.Byte), glove.Word)
+  should.equal(glove.into_base(glove.Halfword), glove.Word)
+  should.equal(glove.into_base(glove.Word), glove.Word)
+  should.equal(glove.into_base(glove.Single), glove.Single)
+  should.equal(glove.into_base(glove.Long), glove.Long)
+  should.equal(glove.into_base(glove.Double), glove.Double)
+  should.equal(
+    glove.into_base(glove.Aggregate(glove.TypeDef(
+      "struct",
+      Some(4),
+      [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
+    ))),
+    glove.Long,
+  )
+  // Assuming td is a valid `TypeDef`
 }
