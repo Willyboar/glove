@@ -3,9 +3,10 @@ version = "0.2.0"
 description = "Gleam QBE IR Generator"
 licences = ["MIT"]
 repository = { type = "github", user = "Willyboar", repo = "glove" }
+gleam = ">= 0.30.0"
 
 [dependencies]
-gleam_stdlib = "~> 0.29"
+gleam_stdlib = "~> 0.30"
 
 [dev-dependencies]
 gleeunit = "~> 0.10"
