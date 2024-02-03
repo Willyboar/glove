@@ -1,11 +1,11 @@
 name = "glove"
-version = "0.3.0"
+version = "0.4.0"
 description = "Gleam QBE IR Generator"
 licences = ["MIT"]
 repository = { type = "github", user = "Willyboar", repo = "glove" }
 
 [dependencies]
-gleam_stdlib = "~> 0.30"
+gleam_stdlib = "~> 0.34 or ~> 1.0"
 
 [dev-dependencies]
-gleeunit = "~> 0.10"
+gleeunit = "~> 1.0"

@@ -155,11 +155,11 @@ pub fn display_type_def_test() {
 
   // Test case 2: TypeDef with alignment and multiple items
   let def2 =
-    glove.TypeDef(
-      "struct",
-      Some(4),
-      [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
-    )
+    glove.TypeDef("struct", Some(4), [
+      #(glove.Word, 2),
+      #(glove.Word, 1),
+      #(glove.Word, 3),
+    ])
   def2
   |> glove.display_type_def
   |> should.equal("type :struct = align 4 { w 2, w, w 3 }")
@@ -211,13 +211,10 @@ pub fn display_type_test() {
 pub fn display_inst_test() {
   // Test case for Call with 2 args
   let call1 =
-    glove.Call(
-      glove.Global("vadd"),
-      [
-        #(glove.Single, glove.Temporary("a")),
-        #(glove.Long, glove.Temporary("ap")),
-      ],
-    )
+    glove.Call(glove.Global("vadd"), [
+      #(glove.Single, glove.Temporary("a")),
+      #(glove.Long, glove.Temporary("ap")),
+    ])
   call1
   |> glove.display_inst
   |> should.equal("call $vadd(s %a, l %ap)")
@@ -280,11 +277,13 @@ pub fn display_inst_test() {
   // Test case for comparing aggregate types
   let comp2 =
     glove.Comp(
-      glove.Aggregate(glove.TypeDef(
-        "struct",
-        Some(4),
-        [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
-      )),
+      glove.Aggregate(
+        glove.TypeDef("struct", Some(4), [
+          #(glove.Word, 2),
+          #(glove.Word, 1),
+          #(glove.Word, 3),
+        ]),
+      ),
       glove.Eq,
       glove.Temporary("a"),
       glove.Temporary("b"),
@@ -368,11 +367,13 @@ pub fn display_inst_test() {
   // Test case for storing an aggregate value
   let store2 =
     glove.Store(
-      glove.Aggregate(glove.TypeDef(
-        "struct",
-        Some(4),
-        [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
-      )),
+      glove.Aggregate(
+        glove.TypeDef("struct", Some(4), [
+          #(glove.Word, 2),
+          #(glove.Word, 1),
+          #(glove.Word, 3),
+        ]),
+      ),
       glove.Const(42),
       glove.Temporary("%r5"),
     )
@@ -383,11 +384,13 @@ pub fn display_inst_test() {
   // Test case for loading an aggregate value
   let load2 =
     glove.Load(
-      glove.Aggregate(glove.TypeDef(
-        "struct",
-        Some(4),
-        [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
-      )),
+      glove.Aggregate(
+        glove.TypeDef("struct", Some(4), [
+          #(glove.Word, 2),
+          #(glove.Word, 1),
+          #(glove.Word, 3),
+        ]),
+      ),
       glove.Temporary("%r6"),
     )
   load2
@@ -481,16 +484,14 @@ pub fn display_function_test() {
       arguments: [],
       return_ty: Some(glove.Word),
       blocks: [
-        glove.Block(
-          "@start",
-          [
-            glove.Volatile(glove.Call(
-              glove.Global("puts"),
-              [#(glove.Long, glove.Global("str"))],
-            )),
-            glove.Volatile(glove.Ret(Some(glove.Const(0)))),
-          ],
-        ),
+        glove.Block("@start", [
+          glove.Volatile(
+            glove.Call(glove.Global("puts"), [
+              #(glove.Long, glove.Global("str")),
+            ]),
+          ),
+          glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+        ]),
       ],
     )
 
@@ -504,16 +505,12 @@ pub fn display_function_test() {
 // Tests for display QBE.Blocks
 pub fn display_blocks_test() {
   let blocks = [
-    glove.Block(
-      "@start",
-      [
-        glove.Volatile(glove.Call(
-          glove.Global("puts"),
-          [#(glove.Long, glove.Global("str"))],
-        )),
-        glove.Volatile(glove.Ret(Some(glove.Const(0)))),
-      ],
-    ),
+    glove.Block("@start", [
+      glove.Volatile(
+        glove.Call(glove.Global("puts"), [#(glove.Long, glove.Global("str"))]),
+      ),
+      glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+    ]),
   ]
 
   let expected = "@start\ncall $puts(l $str)\nret 0\n"
@@ -555,17 +552,14 @@ pub fn display_module_test() {
       ],
       return_ty: Some(glove.Word),
       blocks: [
-        glove.Block(
-          label: "@start",
-          statements: [
-            glove.Assign(
-              glove.Temporary("c"),
-              glove.Word,
-              glove.Add(glove.Temporary("a"), glove.Temporary("b")),
-            ),
-            glove.Volatile(glove.Ret(Some(glove.Temporary("c")))),
-          ],
-        ),
+        glove.Block(label: "@start", statements: [
+          glove.Assign(
+            glove.Temporary("c"),
+            glove.Word,
+            glove.Add(glove.Temporary("a"), glove.Temporary("b")),
+          ),
+          glove.Volatile(glove.Ret(Some(glove.Temporary("c")))),
+        ]),
       ],
     )
 
@@ -576,42 +570,33 @@ pub fn display_module_test() {
       arguments: [],
       return_ty: Some(glove.Word),
       blocks: [
-        glove.Block(
-          label: "@start",
-          statements: [
-            glove.Assign(
-              glove.Temporary("r"),
-              glove.Word,
-              glove.Call(
-                glove.Global("add"),
-                [#(glove.Word, glove.Const(1)), #(glove.Word, glove.Const(1))],
-              ),
-            ),
-            glove.Volatile(glove.Call(
-              glove.Global("printf"),
-              [
-                #(glove.Long, glove.Global("fmt")),
-                #(glove.Word, glove.Temporary("r")),
-              ],
-            )),
-            glove.Volatile(glove.Ret(Some(glove.Const(0)))),
-          ],
-        ),
+        glove.Block(label: "@start", statements: [
+          glove.Assign(
+            glove.Temporary("r"),
+            glove.Word,
+            glove.Call(glove.Global("add"), [
+              #(glove.Word, glove.Const(1)),
+              #(glove.Word, glove.Const(1)),
+            ]),
+          ),
+          glove.Volatile(
+            glove.Call(glove.Global("printf"), [
+              #(glove.Long, glove.Global("fmt")),
+              #(glove.Word, glove.Temporary("r")),
+            ]),
+          ),
+          glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+        ]),
       ],
     )
 
   let functions = [add_func, main_func]
 
   let fmt_data =
-    glove.DataDef(
-      linkage: glove.private(),
-      name: "fmt",
-      align: None,
-      items: [
-        #(glove.Byte, glove.Str("One and one make %d!\n")),
-        #(glove.Byte, glove.Constant(0)),
-      ],
-    )
+    glove.DataDef(linkage: glove.private(), name: "fmt", align: None, items: [
+      #(glove.Byte, glove.Str("One and one make %d!\n")),
+      #(glove.Byte, glove.Constant(0)),
+    ])
 
   let data = [fmt_data]
 
@@ -620,7 +605,17 @@ pub fn display_module_test() {
   module
   |> glove.display_module
   |> should.equal(
-    "function w $add(w %a, w %b) {\n" <> "@start\n" <> "%c =w add %a, %b\n" <> "ret %c\n}\n" <> "export function w $main() {\n" <> "@start\n" <> "%r =w call $add(w 1, w 1)\n" <> "call $printf(l $fmt, w %r)\n" <> "ret 0\n}\n" <> "data $fmt = " <> "{ b \"One and one make %d!\n\", b 0 }",
+    "function w $add(w %a, w %b) {\n"
+      <> "@start\n"
+      <> "%c =w add %a, %b\n"
+      <> "ret %c\n}\n"
+      <> "export function w $main() {\n"
+      <> "@start\n"
+      <> "%r =w call $add(w 1, w 1)\n"
+      <> "call $printf(l $fmt, w %r)\n"
+      <> "ret 0\n}\n"
+      <> "data $fmt = "
+      <> "{ b \"One and one make %d!\n\", b 0 }",
   )
 }
 
@@ -674,10 +669,9 @@ pub fn add_type_test() {
 
   // Assert the type definition is added to the module
   should.equal(updated_module.functions, [])
-  should.equal(
-    updated_module.types,
-    [glove.TypeDef("my_type", None, [#(glove.Word, 2), #(glove.Word, 3)])],
-  )
+  should.equal(updated_module.types, [
+    glove.TypeDef("my_type", None, [#(glove.Word, 2), #(glove.Word, 3)]),
+  ])
   should.equal(updated_module.data, [])
 }
 
@@ -701,58 +695,52 @@ pub fn assign_inst_test() {
 
 pub fn jumps_test() {
   let block_with_jump =
-    glove.Block(
-      label: "my_block",
-      statements: [
-        glove.Assign(
-          glove.Temporary("r"),
-          glove.Word,
-          glove.Call(
-            glove.Global("add"),
-            [#(glove.Word, glove.Const(1)), #(glove.Word, glove.Const(1))],
-          ),
-        ),
-        glove.Volatile(glove.Ret(Some(glove.Const(0)))),
-        // Non-jump instruction
-        glove.Assign(
-          glove.Temporary("r"),
-          glove.Word,
-          glove.Call(
-            glove.Global("add"),
-            [#(glove.Word, glove.Const(1)), #(glove.Word, glove.Const(1))],
-          ),
-        ),
-        glove.Volatile(glove.Jmp("label")),
-      ],
-    )
+    glove.Block(label: "my_block", statements: [
+      glove.Assign(
+        glove.Temporary("r"),
+        glove.Word,
+        glove.Call(glove.Global("add"), [
+          #(glove.Word, glove.Const(1)),
+          #(glove.Word, glove.Const(1)),
+        ]),
+      ),
+      glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+      // Non-jump instruction
+      glove.Assign(
+        glove.Temporary("r"),
+        glove.Word,
+        glove.Call(glove.Global("add"), [
+          #(glove.Word, glove.Const(1)),
+          #(glove.Word, glove.Const(1)),
+        ]),
+      ),
+      glove.Volatile(glove.Jmp("label")),
+    ])
 
   should.equal(glove.jumps(block_with_jump), True)
 
   let block_without_jump =
-    glove.Block(
-      label: "my_block",
-      statements: [
-        glove.Assign(
-          glove.Temporary("r"),
-          glove.Word,
-          glove.Call(
-            glove.Global("add"),
-            [#(glove.Word, glove.Const(1)), #(glove.Word, glove.Const(1))],
-          ),
-        ),
-        glove.Volatile(glove.Ret(Some(glove.Const(0)))),
-        // Non-jump instruction
-        glove.Assign(
-          glove.Temporary("r"),
-          glove.Word,
-          glove.Call(
-            glove.Global("add"),
-            [#(glove.Word, glove.Const(1)), #(glove.Word, glove.Const(1))],
-          ),
-        ),
-        glove.Volatile(glove.Add(glove.Const(1), glove.Const(2))),
-      ],
-    )
+    glove.Block(label: "my_block", statements: [
+      glove.Assign(
+        glove.Temporary("r"),
+        glove.Word,
+        glove.Call(glove.Global("add"), [
+          #(glove.Word, glove.Const(1)),
+          #(glove.Word, glove.Const(1)),
+        ]),
+      ),
+      glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+      // Non-jump instruction
+      glove.Assign(
+        glove.Temporary("r"),
+        glove.Word,
+        glove.Call(glove.Global("add"), [
+          #(glove.Word, glove.Const(1)),
+          #(glove.Word, glove.Const(1)),
+        ]),
+      ),
+      glove.Volatile(glove.Add(glove.Const(1), glove.Const(2))),
+    ])
 
   should.equal(glove.jumps(block_without_jump), False)
 }
@@ -799,16 +787,22 @@ pub fn into_abi_test() {
   should.equal(glove.into_abi(glove.Long), glove.Long)
   should.equal(glove.into_abi(glove.Double), glove.Double)
   should.equal(
-    glove.into_abi(glove.Aggregate(glove.TypeDef(
-      "struct",
-      Some(4),
-      [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
-    ))),
-    glove.Aggregate(glove.TypeDef(
-      "struct",
-      Some(4),
-      [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
-    )),
+    glove.into_abi(
+      glove.Aggregate(
+        glove.TypeDef("struct", Some(4), [
+          #(glove.Word, 2),
+          #(glove.Word, 1),
+          #(glove.Word, 3),
+        ]),
+      ),
+    ),
+    glove.Aggregate(
+      glove.TypeDef("struct", Some(4), [
+        #(glove.Word, 2),
+        #(glove.Word, 1),
+        #(glove.Word, 3),
+      ]),
+    ),
   )
   // Assuming td is a valid `TypeDef`
 }
@@ -821,11 +815,15 @@ pub fn into_base_test() {
   should.equal(glove.into_base(glove.Long), glove.Long)
   should.equal(glove.into_base(glove.Double), glove.Double)
   should.equal(
-    glove.into_base(glove.Aggregate(glove.TypeDef(
-      "struct",
-      Some(4),
-      [#(glove.Word, 2), #(glove.Word, 1), #(glove.Word, 3)],
-    ))),
+    glove.into_base(
+      glove.Aggregate(
+        glove.TypeDef("struct", Some(4), [
+          #(glove.Word, 2),
+          #(glove.Word, 1),
+          #(glove.Word, 3),
+        ]),
+      ),
+    ),
     glove.Long,
   )
   // Assuming td is a valid `TypeDef`

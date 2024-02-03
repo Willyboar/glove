@@ -1,6 +1,6 @@
 import gleam/int
 import gleam/string
-import gleam/option.{None, Option, Some}
+import gleam/option.{type Option, None, Some}
 import gleam/list
 
 /// QBE Comparison Operators
@@ -83,29 +83,59 @@ pub fn display_inst(inst: Inst) -> String {
         _ ->
           case cmp {
             Slt ->
-              "c" <> "slt" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
-                b,
-              )
+              "c"
+              <> "slt"
+              <> " "
+              <> display_type(ty)
+              <> " "
+              <> display_value(a)
+              <> " "
+              <> display_value(b)
             Sle ->
-              "c" <> "sle" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
-                b,
-              )
+              "c"
+              <> "sle"
+              <> " "
+              <> display_type(ty)
+              <> " "
+              <> display_value(a)
+              <> " "
+              <> display_value(b)
             Sgt ->
-              "c" <> "sgt" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
-                b,
-              )
+              "c"
+              <> "sgt"
+              <> " "
+              <> display_type(ty)
+              <> " "
+              <> display_value(a)
+              <> " "
+              <> display_value(b)
             Sge ->
-              "c" <> "sge" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
-                b,
-              )
+              "c"
+              <> "sge"
+              <> " "
+              <> display_type(ty)
+              <> " "
+              <> display_value(a)
+              <> " "
+              <> display_value(b)
             Eq ->
-              "c" <> "eq" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
-                b,
-              )
+              "c"
+              <> "eq"
+              <> " "
+              <> display_type(ty)
+              <> " "
+              <> display_value(a)
+              <> " "
+              <> display_value(b)
             Ne ->
-              "c" <> "ne" <> " " <> display_type(ty) <> " " <> display_value(a) <> " " <> display_value(
-                b,
-              )
+              "c"
+              <> "ne"
+              <> " "
+              <> display_type(ty)
+              <> " "
+              <> display_value(a)
+              <> " "
+              <> display_value(b)
           }
       }
     }
@@ -124,7 +154,7 @@ pub fn display_inst(inst: Inst) -> String {
     Call(name, args) -> {
       let arg_str =
         args
-        |> list.index_map(fn(_, arg) {
+        |> list.index_map(fn(arg, _) {
           case arg {
             #(ty, val) -> display_type(ty) <> " " <> display_value(val)
           }
@@ -141,9 +171,12 @@ pub fn display_inst(inst: Inst) -> String {
       case typ {
         Aggregate(_) -> "Store to an aggregate type"
         _ ->
-          "store" <> display_type(typ) <> " " <> display_value(value) <> " " <> display_value(
-            dest,
-          )
+          "store"
+          <> display_type(typ)
+          <> " "
+          <> display_value(value)
+          <> " "
+          <> display_value(dest)
       }
 
     Load(typ, val) ->
@@ -152,9 +185,12 @@ pub fn display_inst(inst: Inst) -> String {
         _ -> "load" <> display_type(typ) <> " " <> display_value(val)
       }
     Blit(src, dest, n) ->
-      "blit " <> display_value(src) <> ", " <> display_value(dest) <> ", " <> int.to_string(
-        n,
-      )
+      "blit "
+      <> display_value(src)
+      <> ", "
+      <> display_value(dest)
+      <> ", "
+      <> int.to_string(n)
   }
 }
 
@@ -233,6 +269,7 @@ pub fn size(self) -> Int {
     Aggregate(td) ->
       case td.items {
         [] -> 0
+        [_, ..] -> 1
       }
   }
 }
@@ -261,14 +298,21 @@ pub fn display_data_def(def: DataDef) -> String {
 
   let items_str =
     def.items
-    |> list.index_map(fn(_, item) {
+    |> list.index_map(fn(item, _) {
       case item {
         #(ty, di) -> display_type(ty) <> " " <> display_data_item(di)
       }
     })
     |> string.join(", ")
 
-  linkage_str <> "data $" <> def.name <> " =" <> align_str <> " { " <> items_str <> " }"
+  linkage_str
+  <> "data $"
+  <> def.name
+  <> " ="
+  <> align_str
+  <> " { "
+  <> items_str
+  <> " }"
 }
 
 /// QBE aggregate type definition
@@ -285,7 +329,7 @@ pub fn display_type_def(def: TypeDef) -> String {
 
   let items_str =
     def.items
-    |> list.index_map(fn(_, item) {
+    |> list.index_map(fn(item, _) {
       case item {
         #(ty, count) ->
           case count > 1 {
@@ -333,9 +377,11 @@ pub type Statement {
 pub fn display_statement(stmt: Statement) -> String {
   case stmt {
     Assign(val, typ, inst) ->
-      display_value(val) <> " =" <> display_type(typ) <> " " <> display_inst(
-        inst,
-      )
+      display_value(val)
+      <> " ="
+      <> display_type(typ)
+      <> " "
+      <> display_inst(inst)
     Volatile(inst) -> display_inst(inst)
   }
 }
@@ -412,7 +458,18 @@ pub fn display_function(func: Function) -> String {
   let args_str = display_arguments(func.arguments)
   let blocks_str = display_blocks(func.blocks)
 
-  linkage_str <> "function" <> return_str <> " " <> "$" <> name_str <> "(" <> args_str <> ")" <> " {\n" <> blocks_str <> "}"
+  linkage_str
+  <> "function"
+  <> return_str
+  <> " "
+  <> "$"
+  <> name_str
+  <> "("
+  <> args_str
+  <> ")"
+  <> " {\n"
+  <> blocks_str
+  <> "}"
 }
 
 /// Display functions Arguments
@@ -421,7 +478,7 @@ pub fn display_arguments(arguments: List(#(Type, Value))) -> String {
     [] -> ""
     _ ->
       arguments
-      |> list.index_map(fn(_, arg) {
+      |> list.index_map(fn(arg, _) {
         case arg {
           #(ty, val) -> display_type(ty) <> " " <> display_value(val)
         }
@@ -476,10 +533,14 @@ pub fn display_linkage(linkage: Linkage) -> String {
   }
   let section_str = case linkage.section {
     Some(section) ->
-      "section \"" <> section <> "\"" <> case linkage.secflags {
+      "section \""
+      <> section
+      <> "\""
+      <> case linkage.secflags {
         Some(secflags) -> " \"" <> secflags <> "\""
         None -> ""
-      } <> " "
+      }
+      <> " "
     None -> ""
   }
   exported_str <> section_str
