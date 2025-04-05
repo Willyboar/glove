@@ -1,7 +1,7 @@
 import gleam/int
-import gleam/string
-import gleam/option.{type Option, None, Some}
 import gleam/list
+import gleam/option.{type Option, None, Some}
+import gleam/string
 
 /// QBE Comparison Operators
 pub type Comp {

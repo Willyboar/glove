@@ -606,16 +606,16 @@ pub fn display_module_test() {
   |> glove.display_module
   |> should.equal(
     "function w $add(w %a, w %b) {\n"
-      <> "@start\n"
-      <> "%c =w add %a, %b\n"
-      <> "ret %c\n}\n"
-      <> "export function w $main() {\n"
-      <> "@start\n"
-      <> "%r =w call $add(w 1, w 1)\n"
-      <> "call $printf(l $fmt, w %r)\n"
-      <> "ret 0\n}\n"
-      <> "data $fmt = "
-      <> "{ b \"One and one make %d!\n\", b 0 }",
+    <> "@start\n"
+    <> "%c =w add %a, %b\n"
+    <> "ret %c\n}\n"
+    <> "export function w $main() {\n"
+    <> "@start\n"
+    <> "%r =w call $add(w 1, w 1)\n"
+    <> "call $printf(l $fmt, w %r)\n"
+    <> "ret 0\n}\n"
+    <> "data $fmt = "
+    <> "{ b \"One and one make %d!\n\", b 0 }",
   )
 }
 
