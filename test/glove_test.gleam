@@ -262,7 +262,7 @@ pub fn display_inst_test() {
   |> glove.display_inst
   |> should.equal("rem %a, %b")
 
-  // Test case for comparing integer values
+  // Test case for comparing integer values (legacy format)
   let comp1 =
     glove.Comp(
       glove.Word,
@@ -272,7 +272,7 @@ pub fn display_inst_test() {
     )
   comp1
   |> glove.display_inst
-  |> should.equal("cslt w %a %b")
+  |> should.equal("csltw %a, %b")
 
   // Test case for comparing aggregate types
   let comp2 =
@@ -356,7 +356,7 @@ pub fn display_inst_test() {
   let store = glove.Store(glove.Word, glove.Const(42), glove.Temporary("r1"))
   store
   |> glove.display_inst
-  |> should.equal("storew 42 %r1")
+  |> should.equal("storew 42, %r1")
 
   // Test case for loading a value
   let load = glove.Load(glove.Word, glove.Temporary("r2"))
@@ -827,4 +827,710 @@ pub fn into_base_test() {
     glove.Long,
   )
   // Assuming td is a valid `TypeDef`
+}
+
+// Tests for new instructions
+// Tests for new arithmetic and bitwise instructions
+pub fn new_arithmetic_inst_test() {
+  // Unsigned division
+  glove.Udiv(glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("udiv %a, %b")
+
+  // Unsigned remainder
+  glove.Urem(glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("urem %a, %b")
+
+  // Negation
+  glove.Neg(glove.Temporary("a"))
+  |> glove.display_inst
+  |> should.equal("neg %a")
+
+  // XOR
+  glove.Xor(glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("xor %a, %b")
+
+  // Arithmetic right shift
+  glove.Sar(glove.Temporary("a"), glove.Const(4))
+  |> glove.display_inst
+  |> should.equal("sar %a, 4")
+
+  // Logical right shift
+  glove.Shr(glove.Temporary("a"), glove.Const(4))
+  |> glove.display_inst
+  |> should.equal("shr %a, 4")
+
+  // Left shift
+  glove.Shl(glove.Temporary("a"), glove.Const(2))
+  |> glove.display_inst
+  |> should.equal("shl %a, 2")
+}
+
+// Tests for new store instructions
+pub fn new_store_inst_test() {
+  // Store word
+  glove.Storew(glove.Const(42), glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("storew 42, %ptr")
+
+  // Store long
+  glove.Storel(glove.Const(100), glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("storel 100, %ptr")
+
+  // Store single
+  glove.Stores(glove.Temporary("val"), glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("stores %val, %ptr")
+
+  // Store double
+  glove.Stored(glove.Temporary("val"), glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("stored %val, %ptr")
+
+  // Store half-word
+  glove.Storeh(glove.Const(10), glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("storeh 10, %ptr")
+
+  // Store byte
+  glove.Storeb(glove.Const(255), glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("storeb 255, %ptr")
+}
+
+// Tests for new load instructions
+pub fn new_load_inst_test() {
+  // Load word
+  glove.Loadw(glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("loadw %ptr")
+
+  // Load word with sign extension
+  glove.Loadsw(glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("loadsw %ptr")
+
+  // Load word with zero extension
+  glove.Loaduw(glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("loaduw %ptr")
+
+  // Load long
+  glove.Loadl(glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("loadl %ptr")
+
+  // Load single
+  glove.Loads(glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("loads %ptr")
+
+  // Load double
+  glove.Loadd(glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("loadd %ptr")
+
+  // Load half-word signed
+  glove.Loadsh(glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("loadsh %ptr")
+
+  // Load half-word unsigned
+  glove.Loaduh(glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("loaduh %ptr")
+
+  // Load byte signed
+  glove.Loadsb(glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("loadsb %ptr")
+
+  // Load byte unsigned
+  glove.Loadub(glove.Temporary("ptr"))
+  |> glove.display_inst
+  |> should.equal("loadub %ptr")
+}
+
+// Tests for signed integer comparisons
+pub fn signed_comparison_inst_test() {
+  // Signed less than (word)
+  glove.Comp(glove.Word, glove.Sltw, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("csltw %a, %b")
+
+  // Signed less than (long)
+  glove.Comp(glove.Long, glove.Sltl, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("csltl %a, %b")
+
+  // Signed less or equal (word)
+  glove.Comp(glove.Word, glove.Slew, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("cslew %a, %b")
+
+  // Signed less or equal (long)
+  glove.Comp(glove.Long, glove.Slel, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("cslel %a, %b")
+
+  // Signed greater than (word)
+  glove.Comp(glove.Word, glove.Sgtw, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("csgtw %a, %b")
+
+  // Signed greater than (long)
+  glove.Comp(glove.Long, glove.Sgtl, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("csgtl %a, %b")
+
+  // Signed greater or equal (word)
+  glove.Comp(glove.Word, glove.Sgew, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("csgew %a, %b")
+
+  // Signed greater or equal (long)
+  glove.Comp(glove.Long, glove.Sgel, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("csgel %a, %b")
+}
+
+// Tests for unsigned integer comparisons
+pub fn unsigned_comparison_inst_test() {
+  // Unsigned less than (word)
+  glove.Comp(
+    glove.Word,
+    glove.Cultw,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cultw %a, %b")
+
+  // Unsigned less than (long)
+  glove.Comp(
+    glove.Long,
+    glove.Cultl,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cultl %a, %b")
+
+  // Unsigned less or equal (word)
+  glove.Comp(
+    glove.Word,
+    glove.Culew,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("culew %a, %b")
+
+  // Unsigned less or equal (long)
+  glove.Comp(
+    glove.Long,
+    glove.Culel,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("culel %a, %b")
+
+  // Unsigned greater than (word)
+  glove.Comp(
+    glove.Word,
+    glove.Cugtw,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cugtw %a, %b")
+
+  // Unsigned greater than (long)
+  glove.Comp(
+    glove.Long,
+    glove.Cugtl,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cugtl %a, %b")
+
+  // Unsigned greater or equal (word)
+  glove.Comp(
+    glove.Word,
+    glove.Cugew,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cugew %a, %b")
+
+  // Unsigned greater or equal (long)
+  glove.Comp(
+    glove.Long,
+    glove.Cugel,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cugel %a, %b")
+}
+
+// Tests for equality comparisons
+pub fn equality_comparison_inst_test() {
+  // Equal (word)
+  glove.Comp(glove.Word, glove.Ceqw, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("ceqw %a, %b")
+
+  // Equal (long)
+  glove.Comp(glove.Long, glove.Ceql, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("ceql %a, %b")
+
+  // Not equal (word)
+  glove.Comp(glove.Word, glove.Cnew, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("cnew %a, %b")
+
+  // Not equal (long)
+  glove.Comp(glove.Long, glove.Cnel, glove.Temporary("a"), glove.Temporary("b"))
+  |> glove.display_inst
+  |> should.equal("cnel %a, %b")
+}
+
+// Tests for floating-point comparisons
+pub fn float_comparison_inst_test() {
+  // Equal (single)
+  glove.Comp(
+    glove.Single,
+    glove.Ceqs,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("ceqs %a, %b")
+
+  // Equal (double)
+  glove.Comp(
+    glove.Double,
+    glove.Ceqd,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("ceqd %a, %b")
+
+  // Not equal (single)
+  glove.Comp(
+    glove.Single,
+    glove.Cnes,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cnes %a, %b")
+
+  // Not equal (double)
+  glove.Comp(
+    glove.Double,
+    glove.Cned,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cned %a, %b")
+
+  // Less than (single)
+  glove.Comp(
+    glove.Single,
+    glove.Clts,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("clts %a, %b")
+
+  // Less than (double)
+  glove.Comp(
+    glove.Double,
+    glove.Cltd,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cltd %a, %b")
+
+  // Less or equal (single)
+  glove.Comp(
+    glove.Single,
+    glove.Cles,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cles %a, %b")
+
+  // Less or equal (double)
+  glove.Comp(
+    glove.Double,
+    glove.Cled,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cled %a, %b")
+
+  // Greater than (single)
+  glove.Comp(
+    glove.Single,
+    glove.Cgts,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cgts %a, %b")
+
+  // Greater than (double)
+  glove.Comp(
+    glove.Double,
+    glove.Cgtd,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cgtd %a, %b")
+
+  // Greater or equal (single)
+  glove.Comp(
+    glove.Single,
+    glove.Cges,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cges %a, %b")
+
+  // Greater or equal (double)
+  glove.Comp(
+    glove.Double,
+    glove.Cged,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cged %a, %b")
+
+  // Ordered (single)
+  glove.Comp(
+    glove.Single,
+    glove.Cos,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cos %a, %b")
+
+  // Ordered (double)
+  glove.Comp(
+    glove.Double,
+    glove.Cod,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cod %a, %b")
+
+  // Unordered (single)
+  glove.Comp(
+    glove.Single,
+    glove.Cuos,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cuos %a, %b")
+
+  // Unordered (double)
+  glove.Comp(
+    glove.Double,
+    glove.Cuod,
+    glove.Temporary("a"),
+    glove.Temporary("b"),
+  )
+  |> glove.display_inst
+  |> should.equal("cuod %a, %b")
+}
+
+// Tests for conversion instructions
+pub fn conversion_inst_test() {
+  // Sign-extend word to long
+  glove.Extsw(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("extsw %val")
+
+  // Zero-extend word to long
+  glove.Extuw(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("extuw %val")
+
+  // Sign-extend half-word
+  glove.Extsh(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("extsh %val")
+
+  // Zero-extend half-word
+  glove.Extuh(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("extuh %val")
+
+  // Sign-extend byte
+  glove.Extsb(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("extsb %val")
+
+  // Zero-extend byte
+  glove.Extub(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("extub %val")
+
+  // Extend single to double
+  glove.Exts(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("exts %val")
+
+  // Truncate double to single
+  glove.Truncd(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("truncd %val")
+
+  // Single to signed integer
+  glove.Stosi(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("stosi %val")
+
+  // Single to unsigned integer
+  glove.Stoui(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("stoui %val")
+
+  // Double to signed integer
+  glove.Dtosi(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("dtosi %val")
+
+  // Double to unsigned integer
+  glove.Dtoui(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("dtoui %val")
+
+  // Signed word to float
+  glove.Swtof(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("swtof %val")
+
+  // Unsigned word to float
+  glove.Uwtof(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("uwtof %val")
+
+  // Signed long to float
+  glove.Sltof(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("sltof %val")
+
+  // Unsigned long to float
+  glove.Ultof(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("ultof %val")
+
+  // Cast
+  glove.Cast(glove.Temporary("val"))
+  |> glove.display_inst
+  |> should.equal("cast %val")
+}
+
+// Tests for control flow instructions
+pub fn control_flow_inst_test() {
+  // Hlt
+  glove.Hlt
+  |> glove.display_inst
+  |> should.equal("hlt")
+
+  // Phi node
+  glove.Phi([
+    #("start", glove.Const(0)),
+    #("loop", glove.Temporary("x")),
+    #("end", glove.Const(1)),
+  ])
+  |> glove.display_inst
+  |> should.equal("phi @start 0, @loop %x, @end 1")
+}
+
+// Tests for variadic instructions
+pub fn variadic_inst_test() {
+  // Vastart
+  glove.Vastart(glove.Temporary("valist"))
+  |> glove.display_inst
+  |> should.equal("vastart %valist")
+
+  // Vaarg
+  glove.Vaarg(glove.Temporary("valist"))
+  |> glove.display_inst
+  |> should.equal("vaarg %valist")
+}
+
+// Tests for size and align functions
+pub fn size_basic_types_test() {
+  // Test basic type sizes
+  glove.Byte
+  |> glove.size
+  |> should.equal(1)
+
+  glove.Halfword
+  |> glove.size
+  |> should.equal(2)
+
+  glove.Word
+  |> glove.size
+  |> should.equal(4)
+
+  glove.Single
+  |> glove.size
+  |> should.equal(4)
+
+  glove.Long
+  |> glove.size
+  |> should.equal(8)
+
+  glove.Double
+  |> glove.size
+  |> should.equal(8)
+}
+
+pub fn align_basic_types_test() {
+  // For non-aggregate types, alignment equals size
+  glove.Byte
+  |> glove.align
+  |> should.equal(1)
+
+  glove.Halfword
+  |> glove.align
+  |> should.equal(2)
+
+  glove.Word
+  |> glove.align
+  |> should.equal(4)
+
+  glove.Long
+  |> glove.align
+  |> should.equal(8)
+}
+
+pub fn size_aggregate_test() {
+  // Test struct with padding: { w, b, w }
+  // Layout: [wwww][b___][wwww]
+  // Offsets: 0-3 (word), 4 (byte), 5-7 (padding), 8-11 (word)
+  // Size: 12 bytes (with 4-byte alignment)
+  let struct1 =
+    glove.TypeDef("test1", None, [
+      #(glove.Word, 1),
+      // 4 bytes at offset 0
+      #(glove.Byte, 1),
+      // 1 byte at offset 4
+      #(glove.Word, 1),
+      // 4 bytes at offset 8 (after 3 bytes padding)
+    ])
+
+  glove.Aggregate(struct1)
+  |> glove.size
+  |> should.equal(12)
+
+  // Test struct with array: { w 3 }
+  // Size: 12 bytes (3 * 4)
+  let struct2 = glove.TypeDef("test2", None, [#(glove.Word, 3)])
+
+  glove.Aggregate(struct2)
+  |> glove.size
+  |> should.equal(12)
+
+  // Test empty struct
+  let empty_struct = glove.TypeDef("empty", None, [])
+
+  glove.Aggregate(empty_struct)
+  |> glove.size
+  |> should.equal(0)
+
+  // Test struct with mixed types: { l, b, h }
+  // Layout: [llllllll][b_][hh]
+  // Offsets: 0-7 (long), 8 (byte), 9 (padding), 10-11 (halfword)
+  // Size: 16 bytes (with 8-byte alignment from long)
+  let struct3 =
+    glove.TypeDef("test3", None, [
+      #(glove.Long, 1),
+      // 8 bytes
+      #(glove.Byte, 1),
+      // 1 byte
+      #(glove.Halfword, 1),
+      // 2 bytes
+    ])
+
+  glove.Aggregate(struct3)
+  |> glove.size
+  |> should.equal(16)
+}
+
+pub fn align_aggregate_test() {
+  // Test struct alignment without explicit align
+  // Alignment should be max of member alignments
+  let struct1 =
+    glove.TypeDef("test1", None, [
+      #(glove.Word, 1),
+      // align 4
+      #(glove.Byte, 1),
+      // align 1
+    ])
+
+  glove.Aggregate(struct1)
+  |> glove.align
+  |> should.equal(4)
+  // max(4, 1) = 4
+
+  // Test struct with long (8-byte alignment)
+  let struct2 =
+    glove.TypeDef("test2", None, [
+      #(glove.Long, 1),
+      // align 8
+      #(glove.Halfword, 1),
+      // align 2
+    ])
+
+  glove.Aggregate(struct2)
+  |> glove.align
+  |> should.equal(8)
+  // max(8, 2) = 8
+
+  // Test struct with explicit alignment
+  let struct3 =
+    glove.TypeDef("test3", Some(16), [
+      #(glove.Word, 1),
+      // align 4
+    ])
+
+  glove.Aggregate(struct3)
+  |> glove.align
+  |> should.equal(16)
+  // explicit alignment
+
+  // Test empty struct alignment
+  let empty_struct = glove.TypeDef("empty", None, [])
+
+  glove.Aggregate(empty_struct)
+  |> glove.align
+  |> should.equal(1)
+  // default for empty
 }

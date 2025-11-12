@@ -1,147 +1,373 @@
 import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
+import gleam/result
 import gleam/string
 
 /// QBE Comparison Operators
+/// QBE Comparison Operators
 pub type Comp {
-  /// Less Than
+  // Signed integer comparisons
+  /// Signed less than (word)
+  Sltw
+  /// Signed less than (long)
+  Sltl
+  /// Signed less or equal (word)
+  Slew
+  /// Signed less or equal (long)
+  Slel
+  /// Signed greater than (word)
+  Sgtw
+  /// Signed greater than (long)
+  Sgtl
+  /// Signed greater or equal (word)
+  Sgew
+  /// Signed greater or equal (long)
+  Sgel
+  // Unsigned integer comparisons
+  /// Unsigned less than (word)
+  Cultw
+  /// Unsigned less than (long)
+  Cultl
+  /// Unsigned less or equal (word)
+  Culew
+  /// Unsigned less or equal (long)
+  Culel
+  /// Unsigned greater than (word)
+  Cugtw
+  /// Unsigned greater than (long)
+  Cugtl
+  /// Unsigned greater or equal (word)
+  Cugew
+  /// Unsigned greater or equal (long)
+  Cugel
+  // Integer equality (works for word and long)
+  /// Equal (word)
+  Ceqw
+  /// Equal (long)
+  Ceql
+  /// Not equal (word)
+  Cnew
+  /// Not equal (long)
+  Cnel
+  // Floating-point comparisons
+  /// Equal (single)
+  Ceqs
+  /// Equal (double)
+  Ceqd
+  /// Not equal (single)
+  Cnes
+  /// Not equal (double)
+  Cned
+  /// Less than (single)
+  Clts
+  /// Less than (double)
+  Cltd
+  /// Less or equal (single)
+  Cles
+  /// Less or equal (double)
+  Cled
+  /// Greater than (single)
+  Cgts
+  /// Greater than (double)
+  Cgtd
+  /// Greater or equal (single)
+  Cges
+  /// Greater or equal (double)
+  Cged
+  /// Ordered - no NaN (single)
+  Cos
+  /// Ordered - no NaN (double)
+  Cod
+  /// Unordered - contains NaN (single)
+  Cuos
+  /// Unordered - contains NaN (double)
+  Cuod
+  // Legacy - for backward compatibility
+  /// Legacy: Less Than (deprecated - use Sltw/Sltl)
   Slt
-  /// Less or Equal
+  /// Legacy: Less or Equal (deprecated - use Slew/Slel)
   Sle
-  /// Greater than
+  /// Legacy: Greater than (deprecated - use Sgtw/Sgtl)
   Sgt
-  /// Greater or equal
+  /// Legacy: Greater or equal (deprecated - use Sgew/Sgel)
   Sge
-  /// Equal
+  /// Legacy: Equal (deprecated - use Ceqw/Ceql)
   Eq
-  /// Not equal
+  /// Legacy: Not equal (deprecated - use Cnew/Cnel)
   Ne
 }
 
 /// QBE instruction
 pub type Inst {
-  /// Adds values 
+  // Arithmetic and Bits
+  /// Adds values
   Add(Value, Value)
   /// Substracts value(b) from value(a)
   Sub(Value, Value)
-  /// Multiplies values 
+  /// Multiplies values
   Mul(Value, Value)
-  /// Divides value(a) by value(b)
+  /// Divides value(a) by value(b) (signed)
   Div(Value, Value)
-  /// Returns a remaider from division
+  /// Unsigned division
+  Udiv(Value, Value)
+  /// Returns a remainder from division (signed)
   Rem(Value, Value)
-  /// Perform a Comparison
-  Comp(Type, Comp, Value, Value)
+  /// Unsigned remainder
+  Urem(Value, Value)
+  /// Negation
+  Neg(Value)
   /// Bitwise AND
   And(Value, Value)
   /// Bitwise OR
   Or(Value, Value)
-  /// Copies either temporary or literal value
-  Copy(Value)
-  /// Return from a function, optionally with a value
-  Ret(Option(Value))
-  /// Jumps to first label if a value is nonzero or to the second one otherwise
-  Jnz(Value, String, String)
-  /// Unconditionally jumps to a label
-  Jmp(String)
-  /// Calls a function
-  Call(Value, List(#(Type, Value)))
+  /// Bitwise XOR
+  Xor(Value, Value)
+  /// Arithmetic right shift
+  Sar(Value, Value)
+  /// Logical right shift
+  Shr(Value, Value)
+  /// Left shift
+  Shl(Value, Value)
+  // Comparisons
+  /// Perform a Comparison
+  Comp(Type, Comp, Value, Value)
+  // Memory
   /// Allocates a 4-byte aligned area on the stack
   Alloc4(Int)
   /// Allocates a 8-byte aligned area on the stack
   Alloc8(Int)
   /// Allocates a 16-byte aligned area on the stack
   Alloc16(Int)
-  /// Stores a value into memory pointed to by destination.
-  /// (type, destination, value)
-  Store(Type, Value, Value)
-  /// Loads a value from memory pointed to by source
-  /// (type, source)
-  Load(Type, Value)
-  /// (source, destination, n)
-  ///
-  /// Copy `n` bytes from the source address to the destination address.
-  ///
-  /// n must be a constant value.
-  ///
-  /// Minimum supported QBE version 1.1
+  /// Store word
+  Storew(Value, Value)
+  /// Store long
+  Storel(Value, Value)
+  /// Store single
+  Stores(Value, Value)
+  /// Store double
+  Stored(Value, Value)
+  /// Store half-word
+  Storeh(Value, Value)
+  /// Store byte
+  Storeb(Value, Value)
+  /// Load word (syntactic sugar - same as loadsw)
+  Loadw(Value)
+  /// Load word with sign extension
+  Loadsw(Value)
+  /// Load word with zero extension
+  Loaduw(Value)
+  /// Load long
+  Loadl(Value)
+  /// Load single
+  Loads(Value)
+  /// Load double
+  Loadd(Value)
+  /// Load half-word signed
+  Loadsh(Value)
+  /// Load half-word unsigned
+  Loaduh(Value)
+  /// Load byte signed
+  Loadsb(Value)
+  /// Load byte unsigned
+  Loadub(Value)
+  /// Copy `n` bytes from source to destination address
   Blit(Value, Value, Int)
+  // Conversions
+  /// Sign-extend word to long
+  Extsw(Value)
+  /// Zero-extend word to long
+  Extuw(Value)
+  /// Sign-extend half-word
+  Extsh(Value)
+  /// Zero-extend half-word
+  Extuh(Value)
+  /// Sign-extend byte
+  Extsb(Value)
+  /// Zero-extend byte
+  Extub(Value)
+  /// Extend single to double
+  Exts(Value)
+  /// Truncate double to single
+  Truncd(Value)
+  /// Single to signed integer
+  Stosi(Value)
+  /// Single to unsigned integer
+  Stoui(Value)
+  /// Double to signed integer
+  Dtosi(Value)
+  /// Double to unsigned integer
+  Dtoui(Value)
+  /// Signed word to float
+  Swtof(Value)
+  /// Unsigned word to float
+  Uwtof(Value)
+  /// Signed long to float
+  Sltof(Value)
+  /// Unsigned long to float
+  Ultof(Value)
+  /// Bitwise reinterpret cast
+  Cast(Value)
+  /// Copies either temporary or literal value
+  Copy(Value)
+  // Variadic
+  /// Initialize variable argument list
+  Vastart(Value)
+  /// Fetch next variadic argument
+  Vaarg(Value)
+  // Control Flow
+  /// Return from a function, optionally with a value
+  Ret(Option(Value))
+  /// Jumps to first label if a value is nonzero or to the second one otherwise
+  Jnz(Value, String, String)
+  /// Unconditionally jumps to a label
+  Jmp(String)
+  /// Program termination
+  Hlt
+  /// Calls a function
+  Call(Value, List(#(Type, Value)))
+  /// SSA phi node - value selection from predecessors
+  /// List of (label, value) pairs
+  Phi(List(#(String, Value)))
+  // Legacy compatibility - old generic store/load
+  /// Generic store (deprecated - use specific store instructions)
+  Store(Type, Value, Value)
+  /// Generic load (deprecated - use specific load instructions)
+  Load(Type, Value)
 }
 
 /// Display function for Instructions
 pub fn display_inst(inst: Inst) -> String {
   case inst {
+    // Arithmetic
     Add(a, b) -> "add " <> display_value(a) <> ", " <> display_value(b)
     Sub(a, b) -> "sub " <> display_value(a) <> ", " <> display_value(b)
     Mul(a, b) -> "mul " <> display_value(a) <> ", " <> display_value(b)
     Div(a, b) -> "div " <> display_value(a) <> ", " <> display_value(b)
+    Udiv(a, b) -> "udiv " <> display_value(a) <> ", " <> display_value(b)
     Rem(a, b) -> "rem " <> display_value(a) <> ", " <> display_value(b)
+    Urem(a, b) -> "urem " <> display_value(a) <> ", " <> display_value(b)
+    Neg(a) -> "neg " <> display_value(a)
+    And(a, b) -> "and " <> display_value(a) <> ", " <> display_value(b)
+    Or(a, b) -> "or " <> display_value(a) <> ", " <> display_value(b)
+    Xor(a, b) -> "xor " <> display_value(a) <> ", " <> display_value(b)
+    Sar(a, b) -> "sar " <> display_value(a) <> ", " <> display_value(b)
+    Shr(a, b) -> "shr " <> display_value(a) <> ", " <> display_value(b)
+    Shl(a, b) -> "shl " <> display_value(a) <> ", " <> display_value(b)
+    // Comparisons
     Comp(ty, cmp, a, b) -> {
       case ty {
         Aggregate(_) -> "Cannot Compare aggregate types"
-        _ ->
-          case cmp {
-            Slt ->
-              "c"
-              <> "slt"
-              <> " "
-              <> display_type(ty)
-              <> " "
-              <> display_value(a)
-              <> " "
-              <> display_value(b)
-            Sle ->
-              "c"
-              <> "sle"
-              <> " "
-              <> display_type(ty)
-              <> " "
-              <> display_value(a)
-              <> " "
-              <> display_value(b)
-            Sgt ->
-              "c"
-              <> "sgt"
-              <> " "
-              <> display_type(ty)
-              <> " "
-              <> display_value(a)
-              <> " "
-              <> display_value(b)
-            Sge ->
-              "c"
-              <> "sge"
-              <> " "
-              <> display_type(ty)
-              <> " "
-              <> display_value(a)
-              <> " "
-              <> display_value(b)
-            Eq ->
-              "c"
-              <> "eq"
-              <> " "
-              <> display_type(ty)
-              <> " "
-              <> display_value(a)
-              <> " "
-              <> display_value(b)
-            Ne ->
-              "c"
-              <> "ne"
-              <> " "
-              <> display_type(ty)
-              <> " "
-              <> display_value(a)
-              <> " "
-              <> display_value(b)
+        _ -> {
+          let cmp_string = case cmp {
+            // Signed integer comparisons
+            Sltw -> "csltw"
+            Sltl -> "csltl"
+            Slew -> "cslew"
+            Slel -> "cslel"
+            Sgtw -> "csgtw"
+            Sgtl -> "csgtl"
+            Sgew -> "csgew"
+            Sgel -> "csgel"
+            // Unsigned integer comparisons
+            Cultw -> "cultw"
+            Cultl -> "cultl"
+            Culew -> "culew"
+            Culel -> "culel"
+            Cugtw -> "cugtw"
+            Cugtl -> "cugtl"
+            Cugew -> "cugew"
+            Cugel -> "cugel"
+            // Equality comparisons
+            Ceqw -> "ceqw"
+            Ceql -> "ceql"
+            Cnew -> "cnew"
+            Cnel -> "cnel"
+            // Float comparisons
+            Ceqs -> "ceqs"
+            Ceqd -> "ceqd"
+            Cnes -> "cnes"
+            Cned -> "cned"
+            Clts -> "clts"
+            Cltd -> "cltd"
+            Cles -> "cles"
+            Cled -> "cled"
+            Cgts -> "cgts"
+            Cgtd -> "cgtd"
+            Cges -> "cges"
+            Cged -> "cged"
+            Cos -> "cos"
+            Cod -> "cod"
+            Cuos -> "cuos"
+            Cuod -> "cuod"
+            // Legacy comparisons (type-generic)
+            Slt -> "cslt" <> display_type(ty)
+            Sle -> "csle" <> display_type(ty)
+            Sgt -> "csgt" <> display_type(ty)
+            Sge -> "csge" <> display_type(ty)
+            Eq -> "ceq" <> display_type(ty)
+            Ne -> "cne" <> display_type(ty)
           }
+          cmp_string <> " " <> display_value(a) <> ", " <> display_value(b)
+        }
       }
     }
-    And(a, b) -> "and " <> display_value(a) <> ", " <> display_value(b)
-    Or(a, b) -> "or " <> display_value(a) <> ", " <> display_value(b)
+    // Memory operations
+    Alloc4(int) -> "alloc4 " <> int.to_string(int)
+    Alloc8(int) -> "alloc8 " <> int.to_string(int)
+    Alloc16(int) -> "alloc16 " <> int.to_string(int)
+    Storew(val, dest) ->
+      "storew " <> display_value(val) <> ", " <> display_value(dest)
+    Storel(val, dest) ->
+      "storel " <> display_value(val) <> ", " <> display_value(dest)
+    Stores(val, dest) ->
+      "stores " <> display_value(val) <> ", " <> display_value(dest)
+    Stored(val, dest) ->
+      "stored " <> display_value(val) <> ", " <> display_value(dest)
+    Storeh(val, dest) ->
+      "storeh " <> display_value(val) <> ", " <> display_value(dest)
+    Storeb(val, dest) ->
+      "storeb " <> display_value(val) <> ", " <> display_value(dest)
+    Loadw(src) -> "loadw " <> display_value(src)
+    Loadsw(src) -> "loadsw " <> display_value(src)
+    Loaduw(src) -> "loaduw " <> display_value(src)
+    Loadl(src) -> "loadl " <> display_value(src)
+    Loads(src) -> "loads " <> display_value(src)
+    Loadd(src) -> "loadd " <> display_value(src)
+    Loadsh(src) -> "loadsh " <> display_value(src)
+    Loaduh(src) -> "loaduh " <> display_value(src)
+    Loadsb(src) -> "loadsb " <> display_value(src)
+    Loadub(src) -> "loadub " <> display_value(src)
+    Blit(src, dest, n) ->
+      "blit "
+      <> display_value(src)
+      <> ", "
+      <> display_value(dest)
+      <> ", "
+      <> int.to_string(n)
+    // Conversions
+    Extsw(val) -> "extsw " <> display_value(val)
+    Extuw(val) -> "extuw " <> display_value(val)
+    Extsh(val) -> "extsh " <> display_value(val)
+    Extuh(val) -> "extuh " <> display_value(val)
+    Extsb(val) -> "extsb " <> display_value(val)
+    Extub(val) -> "extub " <> display_value(val)
+    Exts(val) -> "exts " <> display_value(val)
+    Truncd(val) -> "truncd " <> display_value(val)
+    Stosi(val) -> "stosi " <> display_value(val)
+    Stoui(val) -> "stoui " <> display_value(val)
+    Dtosi(val) -> "dtosi " <> display_value(val)
+    Dtoui(val) -> "dtoui " <> display_value(val)
+    Swtof(val) -> "swtof " <> display_value(val)
+    Uwtof(val) -> "uwtof " <> display_value(val)
+    Sltof(val) -> "sltof " <> display_value(val)
+    Ultof(val) -> "ultof " <> display_value(val)
+    Cast(val) -> "cast " <> display_value(val)
     Copy(val) -> "copy " <> display_value(val)
+    // Variadic
+    Vastart(addr) -> "vastart " <> display_value(addr)
+    Vaarg(addr) -> "vaarg " <> display_value(addr)
+    // Control Flow
     Ret(val) -> {
       case val {
         Some(val) -> "ret " <> display_value(val) <> "\n"
@@ -151,22 +377,31 @@ pub fn display_inst(inst: Inst) -> String {
     Jnz(val, if_nonzero, if_zero) ->
       "jnz " <> display_value(val) <> ", @" <> if_nonzero <> ", @" <> if_zero
     Jmp(str) -> "jmp @" <> str
+    Hlt -> "hlt"
     Call(name, args) -> {
       let arg_str =
         args
         |> list.index_map(fn(arg, _) {
-          case arg {
-            #(ty, val) -> display_type(ty) <> " " <> display_value(val)
-          }
+          let #(ty, val) = arg
+          display_type(ty) <> " " <> display_value(val)
         })
         |> string.join(", ")
 
       "call " <> display_value(name) <> "(" <> arg_str <> ")"
     }
 
-    Alloc4(int) -> "alloc4 " <> int.to_string(int)
-    Alloc8(int) -> "alloc8 " <> int.to_string(int)
-    Alloc16(int) -> "alloc16 " <> int.to_string(int)
+    Phi(branches) -> {
+      let branch_str =
+        branches
+        |> list.map(fn(branch) {
+          let #(label, val) = branch
+          "@" <> label <> " " <> display_value(val)
+        })
+        |> string.join(", ")
+
+      "phi " <> branch_str
+    }
+
     Store(typ, value, dest) ->
       case typ {
         Aggregate(_) -> "Store to an aggregate type"
@@ -175,7 +410,7 @@ pub fn display_inst(inst: Inst) -> String {
           <> display_type(typ)
           <> " "
           <> display_value(value)
-          <> " "
+          <> ", "
           <> display_value(dest)
       }
 
@@ -184,16 +419,11 @@ pub fn display_inst(inst: Inst) -> String {
         Aggregate(_) -> "Load aggregate type"
         _ -> "load" <> display_type(typ) <> " " <> display_value(val)
       }
-    Blit(src, dest, n) ->
-      "blit "
-      <> display_value(src)
-      <> ", "
-      <> display_value(dest)
-      <> ", "
-      <> int.to_string(n)
   }
 }
 
+/// Bitwise operations
+/// Bitwise operations
 /// QBE Value for instructions
 pub type Value {
   /// `%`-temporary
@@ -258,19 +488,53 @@ pub fn into_base(self) -> Type {
   }
 }
 
+/// Returns byte alignment for values of the type
+pub fn align(self: Type) -> Int {
+  case self {
+    Aggregate(td) -> {
+      case td.align {
+        Some(alignment) -> alignment
+        None -> {
+          // The alignment of a type is the maximum alignment of its members
+          // When there's no members, the alignment is usually defined to be 1.
+          td.items
+          |> list.map(fn(item) { align(item.0) })
+          |> list.reduce(int.max)
+          |> result.unwrap(1)
+        }
+      }
+    }
+    // For non-aggregate types, alignment equals size
+    _ -> size(self)
+  }
+}
+
 /// Returns byte size for values of the type
-pub fn size(self) -> Int {
+pub fn size(self: Type) -> Int {
   case self {
     Byte -> 1
     Halfword -> 2
     Word | Single -> 4
     Long | Double -> 8
-    // This not working 
-    Aggregate(td) ->
-      case td.items {
-        [] -> 0
-        [_, ..] -> 1
-      }
+    Aggregate(td) -> {
+      // Calculate size with proper padding
+      // Calculation from: https://en.wikipedia.org/wiki/Data_structure_alignment#Computing%20padding
+      let offset =
+        td.items
+        |> list.fold(0, fn(offset, item) {
+          let #(item_type, repeat) = item
+          let item_align = align(item_type)
+          let item_size = repeat * size(item_type)
+          let padding = { item_align - { offset % item_align } } % item_align
+          offset + padding + item_size
+        })
+
+      let type_align = align(self)
+      let final_padding = { type_align - { offset % type_align } } % type_align
+
+      // Size is the final offset with the padding that is left
+      offset + final_padding
+    }
   }
 }
 
@@ -373,7 +637,7 @@ pub type Statement {
   Volatile(Inst)
 }
 
-/// Display function for Statement 
+/// Display function for Statement
 pub fn display_statement(stmt: Statement) -> String {
   case stmt {
     Assign(val, typ, inst) ->
@@ -505,7 +769,7 @@ pub fn new_function() -> Function {
   )
 }
 
-/// Adds a new empty block with a specified label and returns 
+/// Adds a new empty block with a specified label and returns
 /// a reference to it
 pub fn add_block(label: String) -> Block {
   Block(label: label, statements: [])
@@ -566,7 +830,7 @@ pub fn public_with_section(section: String) -> Linkage {
   Linkage(exported: True, section: Some(section), secflags: None)
 }
 
-/// A complete IL file 
+/// A complete IL file
 pub type Module {
   Module(functions: List(Function), types: List(TypeDef), data: List(DataDef))
 }
