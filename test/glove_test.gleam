@@ -211,23 +211,31 @@ pub fn display_type_test() {
 pub fn display_inst_test() {
   // Test case for Call with 2 args
   let call1 =
-    glove.Call(glove.Global("vadd"), [
-      #(glove.Single, glove.Temporary("a")),
-      #(glove.Long, glove.Temporary("ap")),
-    ])
+    glove.Call(
+      glove.Global("vadd"),
+      [
+        #(glove.Single, glove.Temporary("a")),
+        #(glove.Long, glove.Temporary("ap")),
+      ],
+      None,
+    )
   call1
   |> glove.display_inst
   |> should.equal("call $vadd(s %a, l %ap)")
 
   //Test case for empty call
-  let call2 = glove.Call(glove.Global("vsub"), [])
+  let call2 = glove.Call(glove.Global("vsub"), [], None)
   call2
   |> glove.display_inst
   |> should.equal("call $vsub()")
 
   // Test case for call with single arg
   let call3 =
-    glove.Call(glove.Global("div"), [#(glove.Single, glove.Temporary("b"))])
+    glove.Call(
+      glove.Global("div"),
+      [#(glove.Single, glove.Temporary("b"))],
+      None,
+    )
   call3
   |> glove.display_inst
   |> should.equal("call $div(s %b)")
@@ -485,11 +493,13 @@ pub fn display_function_test() {
       return_ty: Some(glove.Word),
       blocks: [
         glove.Block("@start", [
-          glove.Volatile(
-            glove.Call(glove.Global("puts"), [
+          glove.Volatile(glove.Call(
+            glove.Global("puts"),
+            [
               #(glove.Long, glove.Global("str")),
-            ]),
-          ),
+            ],
+            None,
+          )),
           glove.Volatile(glove.Ret(Some(glove.Const(0)))),
         ]),
       ],
@@ -506,9 +516,11 @@ pub fn display_function_test() {
 pub fn display_blocks_test() {
   let blocks = [
     glove.Block("@start", [
-      glove.Volatile(
-        glove.Call(glove.Global("puts"), [#(glove.Long, glove.Global("str"))]),
-      ),
+      glove.Volatile(glove.Call(
+        glove.Global("puts"),
+        [#(glove.Long, glove.Global("str"))],
+        None,
+      )),
       glove.Volatile(glove.Ret(Some(glove.Const(0)))),
     ]),
   ]
@@ -574,17 +586,23 @@ pub fn display_module_test() {
           glove.Assign(
             glove.Temporary("r"),
             glove.Word,
-            glove.Call(glove.Global("add"), [
-              #(glove.Word, glove.Const(1)),
-              #(glove.Word, glove.Const(1)),
-            ]),
+            glove.Call(
+              glove.Global("add"),
+              [
+                #(glove.Word, glove.Const(1)),
+                #(glove.Word, glove.Const(1)),
+              ],
+              None,
+            ),
           ),
-          glove.Volatile(
-            glove.Call(glove.Global("printf"), [
+          glove.Volatile(glove.Call(
+            glove.Global("printf"),
+            [
               #(glove.Long, glove.Global("fmt")),
               #(glove.Word, glove.Temporary("r")),
-            ]),
-          ),
+            ],
+            None,
+          )),
           glove.Volatile(glove.Ret(Some(glove.Const(0)))),
         ]),
       ],
@@ -678,7 +696,7 @@ pub fn add_type_test() {
 // Test for add instruction function
 pub fn add_inst_test() {
   let block = glove.Block(label: "my_block", statements: [])
-  let inst = glove.Call(glove.Global("foo"), [])
+  let inst = glove.Call(glove.Global("foo"), [], None)
   let new_block = glove.add_inst(block, inst)
   should.equal(new_block.statements, [glove.Volatile(inst)])
 }
@@ -688,7 +706,7 @@ pub fn assign_inst_test() {
   let block = glove.Block(label: "my_block", statements: [])
   let val = glove.Temporary("tmp")
   let typ = glove.Word
-  let inst = glove.Call(glove.Global("bar"), [])
+  let inst = glove.Call(glove.Global("bar"), [], None)
   let new_block = glove.assign_inst(block, val, typ, inst)
   should.equal(new_block.statements, [glove.Assign(val, typ, inst)])
 }
@@ -699,20 +717,28 @@ pub fn jumps_test() {
       glove.Assign(
         glove.Temporary("r"),
         glove.Word,
-        glove.Call(glove.Global("add"), [
-          #(glove.Word, glove.Const(1)),
-          #(glove.Word, glove.Const(1)),
-        ]),
+        glove.Call(
+          glove.Global("add"),
+          [
+            #(glove.Word, glove.Const(1)),
+            #(glove.Word, glove.Const(1)),
+          ],
+          None,
+        ),
       ),
       glove.Volatile(glove.Ret(Some(glove.Const(0)))),
       // Non-jump instruction
       glove.Assign(
         glove.Temporary("r"),
         glove.Word,
-        glove.Call(glove.Global("add"), [
-          #(glove.Word, glove.Const(1)),
-          #(glove.Word, glove.Const(1)),
-        ]),
+        glove.Call(
+          glove.Global("add"),
+          [
+            #(glove.Word, glove.Const(1)),
+            #(glove.Word, glove.Const(1)),
+          ],
+          None,
+        ),
       ),
       glove.Volatile(glove.Jmp("label")),
     ])
@@ -724,20 +750,28 @@ pub fn jumps_test() {
       glove.Assign(
         glove.Temporary("r"),
         glove.Word,
-        glove.Call(glove.Global("add"), [
-          #(glove.Word, glove.Const(1)),
-          #(glove.Word, glove.Const(1)),
-        ]),
+        glove.Call(
+          glove.Global("add"),
+          [
+            #(glove.Word, glove.Const(1)),
+            #(glove.Word, glove.Const(1)),
+          ],
+          None,
+        ),
       ),
       glove.Volatile(glove.Ret(Some(glove.Const(0)))),
       // Non-jump instruction
       glove.Assign(
         glove.Temporary("r"),
         glove.Word,
-        glove.Call(glove.Global("add"), [
-          #(glove.Word, glove.Const(1)),
-          #(glove.Word, glove.Const(1)),
-        ]),
+        glove.Call(
+          glove.Global("add"),
+          [
+            #(glove.Word, glove.Const(1)),
+            #(glove.Word, glove.Const(1)),
+          ],
+          None,
+        ),
       ),
       glove.Volatile(glove.Add(glove.Const(1), glove.Const(2))),
     ])
@@ -1533,4 +1567,107 @@ pub fn align_aggregate_test() {
   |> glove.align
   |> should.equal(1)
   // default for empty
+}
+
+// Test variadic function call in a complete module
+pub fn variadic_printf_module_test() {
+  // Create a simple printf example that prints "Hello: 42"
+  let fmt_data =
+    glove.DataDef(linkage: glove.private(), name: "fmt", align: None, items: [
+      #(glove.Byte, glove.Str("Hello: %d")),
+      #(glove.Byte, glove.Constant(10)),
+      // \n
+      #(glove.Byte, glove.Constant(0)),
+      // null terminator
+    ])
+
+  let main_func =
+    glove.Function(
+      linkage: glove.public(),
+      name: "main",
+      arguments: [],
+      return_ty: Some(glove.Word),
+      blocks: [
+        glove.Block("@start", [
+          glove.Volatile(glove.Call(
+            glove.Global("printf"),
+            [#(glove.Long, glove.Global("fmt"))],
+            Some([#(glove.Word, glove.Const(42))]),
+          )),
+          glove.Volatile(glove.Ret(Some(glove.Const(0)))),
+        ]),
+      ],
+    )
+
+  let module =
+    glove.new_module()
+    |> glove.add_data(fmt_data)
+    |> glove.add_function(main_func)
+
+  let output = glove.display_module(module)
+
+  // Verify the output contains the variadic call syntax
+  output
+  |> should.equal(
+    "export function w $main() {\n@start\ncall $printf(l $fmt, ..., w 42)\nret 0\n}\ndata $fmt = { b \"Hello: %d\", b 10, b 0 }",
+  )
+}
+
+// Test variadic function with multiple arguments
+pub fn variadic_multiple_args_test() {
+  let call =
+    glove.Call(
+      glove.Global("snprintf"),
+      [
+        #(glove.Long, glove.Temporary("buf")),
+        #(glove.Long, glove.Const(100)),
+        #(glove.Long, glove.Global("fmt")),
+      ],
+      Some([
+        #(glove.Word, glove.Temporary("x")),
+        #(glove.Double, glove.Temporary("y")),
+        #(glove.Long, glove.Global("str")),
+      ]),
+    )
+
+  call
+  |> glove.display_inst
+  |> should.equal(
+    "call $snprintf(l %buf, l 100, l $fmt, ..., w %x, d %y, l $str)",
+  )
+}
+
+// Test variadic function in a statement
+pub fn variadic_in_statement_test() {
+  let stmt =
+    glove.Volatile(glove.Call(
+      glove.Global("printf"),
+      [#(glove.Long, glove.Global("fmt"))],
+      Some([#(glove.Word, glove.Const(123))]),
+    ))
+
+  stmt
+  |> glove.display_statement
+  |> should.equal("call $printf(l $fmt, ..., w 123)")
+}
+
+// Test variadic function with assignment
+pub fn variadic_with_assignment_test() {
+  let stmt =
+    glove.Assign(
+      glove.Temporary("result"),
+      glove.Word,
+      glove.Call(
+        glove.Global("sprintf"),
+        [
+          #(glove.Long, glove.Temporary("buf")),
+          #(glove.Long, glove.Global("fmt")),
+        ],
+        Some([#(glove.Word, glove.Temporary("val"))]),
+      ),
+    )
+
+  stmt
+  |> glove.display_statement
+  |> should.equal("%result =w call $sprintf(l %buf, l $fmt, ..., w %val)")
 }

@@ -224,8 +224,8 @@ pub type Inst {
   Jmp(String)
   /// Program termination
   Hlt
-  /// Calls a function
-  Call(Value, List(#(Type, Value)))
+  /// Call(function, args, variadic_args)
+  Call(Value, List(#(Type, Value)), Option(List(#(Type, Value))))
   /// SSA phi node - value selection from predecessors
   /// List of (label, value) pairs
   Phi(List(#(String, Value)))
@@ -378,7 +378,7 @@ pub fn display_inst(inst: Inst) -> String {
       "jnz " <> display_value(val) <> ", @" <> if_nonzero <> ", @" <> if_zero
     Jmp(str) -> "jmp @" <> str
     Hlt -> "hlt"
-    Call(name, args) -> {
+    Call(name, args, variadic_args) -> {
       let arg_str =
         args
         |> list.index_map(fn(arg, _) {
@@ -387,7 +387,27 @@ pub fn display_inst(inst: Inst) -> String {
         })
         |> string.join(", ")
 
-      "call " <> display_value(name) <> "(" <> arg_str <> ")"
+      case variadic_args {
+        None -> "call " <> display_value(name) <> "(" <> arg_str <> ")"
+        Some(varargs) -> {
+          let varargs_str =
+            varargs
+            |> list.index_map(fn(arg, _) {
+              let #(ty, val) = arg
+              display_type(ty) <> " " <> display_value(val)
+            })
+            |> string.join(", ")
+
+          let full_args = case arg_str, varargs_str {
+            "", "" -> "..."
+            "", v -> "..., " <> v
+            a, "" -> a <> ", ..."
+            a, v -> a <> ", ..., " <> v
+          }
+
+          "call " <> display_value(name) <> "(" <> full_args <> ")"
+        }
+      }
     }
 
     Phi(branches) -> {
